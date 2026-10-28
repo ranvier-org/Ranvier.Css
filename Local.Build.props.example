@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
     <UseLocalRanvier>true</UseLocalRanvier>
-    <!-- RanvierRoot defaults to the sibling ../Ranvier checkout. -->
+    <!-- RanvierRoot defaults to the sibling ../Ranvier.Views checkout. -->
   </PropertyGroup>
 </Project>

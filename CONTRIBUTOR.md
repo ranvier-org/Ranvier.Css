@@ -34,7 +34,7 @@ tools/npm dependencies and install Chromium. Run `dotnet fsi build.fsx -- ci`
 for the complete local equivalent of the GitHub CI gates. Individual checks use
 `test --group dotnet`, `bindings`, `assets` or `browser`; bare `test` runs all four.
 
-For changes spanning this repository and Ranvier, use
+For changes spanning this repository and Ranvier.Views, use
 `dotnet fsi build.fsx -- dev local [--ranvier-root <path>]`. This clones a missing
 sibling checkout and enables project references using ignored `Local.Build.props`.
 Existing checkouts are preserved. `dev packages` returns to pinned package references.
