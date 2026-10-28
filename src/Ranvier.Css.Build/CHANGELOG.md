@@ -1,4 +1,5 @@
 ---
+last_commit_released: b2445ef15449e45043a63607e7af0ccf0036085c
 updaters:
   - xml:
       file: Ranvier.Css.Build.fsproj

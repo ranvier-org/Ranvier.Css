@@ -111,10 +111,10 @@ rights; this is an explicit maintainer operation.
 
 ### Imported release baseline
 
-The CSS libraries preserve the versions already published from Ranvier. Before
-enabling automated releases in this new repository, commit the imported baseline
-and set `last_commit_released` in each changelog to that import commit. Do not
-reset package versions or attempt to overwrite an existing NuGet version.
+The CSS libraries preserve the versions already published from Ranvier. Each
+changelog records the initial import commit as `last_commit_released`, so the
+migration itself is excluded from new release calculations. Do not reset package
+versions or attempt to overwrite an existing NuGet version.
 
 When a release requires a newer Ranvier.View, first test the exact upstream and
 downstream revisions in local-reference mode. Publish View, wait until its exact
