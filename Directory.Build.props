@@ -9,7 +9,7 @@
         <Authors>shayanhabibi</Authors>
         <UseLocalRanvier Condition="'$(UseLocalRanvier)' == ''">false</UseLocalRanvier>
         <RanvierRoot Condition="'$(RanvierRoot)' == ''">$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)../Ranvier.Views'))</RanvierRoot>
-        <RanvierViewVersion>0.1.0-alpha.3</RanvierViewVersion>
+        <RanvierViewVersion>0.1.1-alpha.1</RanvierViewVersion>
         <RanvierTrace Condition="'$(RanvierTrace)' == '' and '$(Configuration)' == 'Debug'">true</RanvierTrace>
         <RanvierPackageSuffix Condition="'$(RanvierTrace)' == 'true'">.Traced</RanvierPackageSuffix>
         <PackageIcon>ranvier-icon.png</PackageIcon>
