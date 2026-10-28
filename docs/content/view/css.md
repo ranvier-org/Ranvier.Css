@@ -40,7 +40,7 @@ dotnet add package Ranvier.Css.View --prerelease
 
 `Ranvier.Css` is their portable runtime dependency. `Ranvier.Css.Build` is the separate .NET
 asset compiler library. The view adapter also depends on the view packages; retain the
-[Xantham package source](https://github.com/shayanhabibi/Ranvier/blob/master/docs/content/guide/installation.md#views) required by those packages.
+[Xantham package source](https://ranvier-org.github.io/Ranvier.View/) required by those packages.
 
 For a source checkout, reference `src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj` and
 `src/Ranvier.Css.View/Ranvier.Css.View.fsproj`. See [extracting and serving CSS](css-build.md)

@@ -6,7 +6,7 @@
         <DefineConstants>$(DefineConstants);RANVIER_VIEW_INSPECT</DefineConstants>
     </PropertyGroup>
     <Target Name="ValidateLocalRanvier" BeforeTargets="PrepareForBuild" Condition="'$(UseLocalRanvier)' == 'true'">
-        <Error Condition="!Exists('$(RanvierRoot)/src/Ranvier.View/Ranvier.View.fsproj')" Text="RanvierRoot must point to a Ranvier checkout. Run dotnet fsi build.fsx -- dev local." />
+        <Error Condition="!Exists('$(RanvierRoot)/src/Ranvier.View/Ranvier.View.fsproj')" Text="RanvierRoot must point to a Ranvier.View checkout. Run dotnet fsi build.fsx -- dev local." />
     </Target>
     <Target Name="RefuseTracedPack" BeforeTargets="GenerateNuspec" Condition="'$(RanvierTrace)' == 'true' and !$(PackageId.EndsWith('.Traced'))">
         <Error Text="Traced builds must use a .Traced package ID. Pack with -c Release or RanvierTrace=true." />

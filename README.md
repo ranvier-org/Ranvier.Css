@@ -49,7 +49,7 @@ rtk dotnet fsi build.fsx -- dev local
 rtk dotnet fsi build.fsx -- test --group dotnet
 ```
 
-`dev local` uses `../Ranvier`, cloning it only if the directory is missing, and writes ignored `Local.Build.props`. Supply `--ranvier-root <path>` for another location. Existing checkouts are never reset or updated implicitly.
+`dev local` uses `../Ranvier.View` ([ranvier-org/Ranvier.View](https://github.com/ranvier-org/Ranvier.View)), cloning it only if the directory is missing, and writes ignored `Local.Build.props`. Supply `--ranvier-root <path>` for another location. Existing checkouts are never reset or updated implicitly.
 
 `dev packages` switches back to pinned NuGet dependencies. For one-off builds without a local configuration file, use `dotnet build -p:UseLocalRanvier=true -p:RanvierRoot=<path>`. Use `Local.Build.props.example` if configuring an IDE manually.
 
