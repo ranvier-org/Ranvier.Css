@@ -18,6 +18,11 @@ module Spec =
         "src/Ranvier.Css.View/Ranvier.Css.View.fsproj"
     ]
     let tools = [ "tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj"; "tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" ]
+    let localTools =
+        use manifest = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, ".config/dotnet-tools.json")))
+        manifest.RootElement.GetProperty("tools").EnumerateObject()
+        |> Seq.map (fun tool -> tool.Name, tool.Value.GetRawText())
+        |> Seq.toList
     let formatting =
         !! "**/*.fs"
         -- "**/obj/**"
@@ -44,13 +49,26 @@ module Options =
         |> Input.description "Path to the sibling Ranvier repository"
 
 module Stage =
+    let restoreTools = stage "restore tools in isolated SDK processes" {
+        for name, registration in Spec.localTools do
+            stage $"restore {name}" {
+                run (fun _ ->
+                    let directory = Path.Combine(Spec.root, ".config/.tool-restore")
+                    Directory.CreateDirectory directory |> ignore
+                    let json = "{\"version\":1,\"isRoot\":true,\"tools\":{" + System.Text.Json.JsonSerializer.Serialize(name) + ":" + registration + "}}"
+                    File.WriteAllText(Path.Combine(directory, name + ".json"), json))
+                run (Cmd.ofList "dotnet" [ "tool"; "restore"; "--tool-manifest"; Path.Combine(Spec.root, ".config/.tool-restore", name + ".json"); "--verbosity"; "q" ])
+            }
+    }
     let restore = input {
         let! quick = Baked.Common.quick
         and! config = Baked.Dotnet.configOrRelease
         return stage "restore" {
             when' (not quick)
-            run "dotnet tool restore --verbosity q"
-            run (cmd $"dotnet restore Ranvier.Css.slnx -p:Configuration={config}")
+            restoreTools
+            stage "restore solution" {
+                run (cmd $"dotnet restore Ranvier.Css.slnx -p:Configuration={config}")
+            }
         }
     }
 
@@ -226,6 +244,10 @@ module Stage =
 exit <| rootCommand fsi.CommandLineArgs[1..] {
     description "Ranvier.Css development, validation and releases"
     workingDir Spec.root
+    command "tools" {
+        description "Restore pinned tools individually to avoid SDK tool-metadata collisions on fresh runners"
+        Command.pipeline { Stage.restoreTools }
+    }
     command "dev" {
         description "Set up dependencies and switch between published and sibling Ranvier references"
         command "setup" {

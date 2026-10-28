@@ -41,5 +41,5 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          dotnet tool restore
+          dotnet fsi build.fsx -- tools
           dotnet fsi build.fsx -- shipit github --allow-branch "$RELEASE_BRANCH" --mode pull-request --skip-merge-commit

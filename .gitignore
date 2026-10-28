@@ -21,3 +21,4 @@ Local.Build.props
 playwright-report/
 test-results/
 /artifacts/
+/.config/.tool-restore/

@@ -60,6 +60,10 @@ The browser compile stage removes legacy nuspec files from CSS intermediate
 directories to avoid [Fickl #137](https://github.com/shayanhabibi/fickl/issues/137),
 which also reproduces in upstream Fable 5.24.0.
 
+`tools` restores each pinned tool in a separate SDK process, avoiding the
+[cold-cache tool metadata collision](https://github.com/dotnet/sdk/issues/53783).
+Developer setup and CI use this command automatically.
+
 ## Releases
 
 Each library retains its version from Ranvier and has a ShipIt changelog with a project version updater. Configure trusted NuGet publishing and GitHub permissions as described in [CONTRIBUTOR.md](CONTRIBUTOR.md#maintainer-setup). Fable source packaging and optional `.Traced` package identities are preserved.

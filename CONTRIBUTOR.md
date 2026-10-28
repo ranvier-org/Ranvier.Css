@@ -48,7 +48,7 @@ through `test --group bindings`.
 
 Install the .NET SDK selected by `global.json` (the build CLI requires .NET 10 or
 later). When targeting .NET 8 or 9, install that runtime too so the tests can run.
-Restore the pinned local tools with `dotnet tool restore`.
+Restore the pinned local tools with `dotnet fsi build.fsx -- tools`.
 
 Run `dotnet fsi build.fsx -- test`.
 Use the build CLI's `format` command to apply Fantomas formatting, then
