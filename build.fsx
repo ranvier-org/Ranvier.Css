@@ -45,8 +45,8 @@ module Options =
     let browser = Input.option<bool> "--with-browser" |> Input.description "Install Chromium during developer setup"
     let ranvierRoot =
         Input.option<string> "--ranvier-root"
-        |> Input.def (Path.GetFullPath(Path.Combine(Spec.root, "../Ranvier.Views")))
-        |> Input.description "Path to the sibling Ranvier.Views repository"
+        |> Input.def (Path.GetFullPath(Path.Combine(Spec.root, "../Ranvier.View")))
+        |> Input.description "Path to the sibling Ranvier.View repository"
 
 module Stage =
     let restoreTools = stage "restore tools in isolated SDK processes" {
@@ -209,15 +209,15 @@ module Stage =
     let local = input {
         let! root = Options.ranvierRoot
         let root = Path.GetFullPath(root, Spec.root)
-        return stage "configure sibling Ranvier.Views checkout" {
+        return stage "configure sibling Ranvier.View checkout" {
             stage "clone if missing" {
                 when' (not (Directory.Exists root))
-                run (cmd $"git clone https://github.com/ranvier-org/Ranvier.Views.git {root}")
+                run (cmd $"git clone https://github.com/ranvier-org/Ranvier.View.git {root}")
             }
             stage "write local configuration" {
                 run (fun _ ->
                     if not (File.Exists(Path.Combine(root, "src/Ranvier.View/Ranvier.View.fsproj"))) then
-                        invalidArg "ranvier-root" "The path is not a Ranvier.Views checkout."
+                        invalidArg "ranvier-root" "The path is not a Ranvier.View checkout."
                     let escaped = System.Security.SecurityElement.Escape root
                     File.WriteAllText(Path.Combine(Spec.root, "Local.Build.props"), $"<Project><PropertyGroup><UseLocalRanvier>true</UseLocalRanvier><RanvierRoot>{escaped}</RanvierRoot></PropertyGroup></Project>"))
             }
