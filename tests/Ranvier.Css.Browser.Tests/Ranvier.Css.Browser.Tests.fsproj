@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><GenerateDocumentationFile>false</GenerateDocumentationFile></PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj"/><ProjectReference Include="../../src/Ranvier.Css.View/Ranvier.Css.View.fsproj"/><Compile Include="BrowserTests.fs"/></ItemGroup>
+  <ItemGroup Condition="'$(UseLocalRanvier)' == 'true'">
+    <ProjectReference Include="$(RanvierRoot)/src/Ranvier.View.Dom/Ranvier.View.Dom.fsproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalRanvier)' != 'true'">
+    <PackageReference Include="Ranvier.View.Dom$(RanvierPackageSuffix)" Version="$(RanvierViewVersion)" />
+  </ItemGroup>
+</Project>

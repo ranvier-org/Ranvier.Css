@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  css:
+    name: CSS (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [dotnet, bindings, assets, browser]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          dotnet-version: 8.0.x
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            tools/Ranvier.Css.Generate/package-lock.json
+            tools/Ranvier.Css.Import/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ matrix.group }}-${{ hashFiles('**/*.fsproj', '**/Directory.Build.*', 'nuget.config', '.config/dotnet-tools.json') }}
+          restore-keys: nuget-${{ runner.os }}-${{ matrix.group }}-
+      - name: Run the same CSS checks as local development
+        run: dotnet fsi build.fsx -- test --group ${{ matrix.group }}
+      - name: Upload CSS diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: css-${{ matrix.group }}-diagnostics
+          path: |
+            tools/Ranvier.Css.Generate/out/checks/*.log
+            tools/Ranvier.Css.Import/out/**/*.log
+          if-no-files-found: ignore
+
+  packages:
+    name: Packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Build and pack CSS libraries with Fable sources
+        run: dotnet fsi build.fsx -- pack
+      - uses: actions/upload-artifact@v7
+        with:
+          name: nuget-packages
+          path: bin/*.nupkg
+          if-no-files-found: error
+
+  format:
+    name: Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet tool restore
+      - run: dotnet fsi build.fsx -- format --dry-format --quick
+
+  result:
+    name: CI result
+    needs: [css, packages, format]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            case "$result" in success) ;; *) exit 1 ;; esac
+          done

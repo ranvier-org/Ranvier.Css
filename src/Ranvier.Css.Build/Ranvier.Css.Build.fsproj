@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <PackageId>Ranvier.Css.Build</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Build.Traced</PackageId>
+    <Version>0.1.0-alpha.2</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>Deterministic static CSS asset compilation for Ranvier utilities and stylesheets.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <FablePackageType>none</FablePackageType>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" /><Compile Include="Compiler.fs" /></ItemGroup>
+  <ItemGroup>
+    <PackageReference Remove="Fable.Package.SDK" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>

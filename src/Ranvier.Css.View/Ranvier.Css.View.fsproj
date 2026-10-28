@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <PackageId>Ranvier.Css.View</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.View.Traced</PackageId>
+    <Version>0.1.0-alpha.2</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>Typed CSS utility attributes and reactive style bindings for Ranvier.View.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" /><Compile Include="Bindings.fs" /><Compile Include="UtilityBindings.fs" /></ItemGroup>
+  <ItemGroup Condition="'$(UseLocalRanvier)' == 'true'">
+    <ProjectReference Include="$(RanvierRoot)/src/Ranvier.View/Ranvier.View.fsproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalRanvier)' != 'true'">
+    <PackageReference Include="Ranvier.View$(RanvierPackageSuffix)" Version="$(RanvierViewVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../Ranvier.Css/README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>

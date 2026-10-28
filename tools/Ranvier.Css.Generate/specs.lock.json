@@ -1,0 +1,494 @@
+{
+  "repository": "w3c/webref",
+  "revision": "4bb34a8d08cb9b9c8b73f7f175703941eef5c20c",
+  "files": [
+    {
+      "file": "animation-triggers.json",
+      "sha256": "0b9a047dd806434d5a721dfbeb4d265481aca94573d27cf5af7109fba75d9097"
+    },
+    {
+      "file": "compat.json",
+      "sha256": "302827e655fb36d7f8fef6dd5f0c95ce26c61c1b2fc760eff18a7007d60a5aa6"
+    },
+    {
+      "file": "compositing.json",
+      "sha256": "5200a635fbe2c0c5d464c0a8e174d580ec398103b7dde1e0c676698e0ec922a1"
+    },
+    {
+      "file": "css-align.json",
+      "sha256": "6f07b171eed357af225c9bac7957265c2577e74d6aded87adf85934698d85d35"
+    },
+    {
+      "file": "css-anchor-position-2.json",
+      "sha256": "ec2b9dd3fb0b43c0123718ee7d3c73eee6db7a84fa55464bbd7e4192de0ddd08"
+    },
+    {
+      "file": "css-anchor-position.json",
+      "sha256": "c7b198cfe5533fdc8197e89c61138ac2a15f47ea883d609a36bba712ef466d89"
+    },
+    {
+      "file": "css-animations-2.json",
+      "sha256": "c1e991416110b0d4a9e2be661a5b64672bae5d479b181f5c565200f5eae5a331"
+    },
+    {
+      "file": "css-animations.json",
+      "sha256": "52763aad73c7f7c05a8ee35a02fa5eca11acde2731f7755c8efc1570ff559e6d"
+    },
+    {
+      "file": "css-backgrounds-4.json",
+      "sha256": "c6287c3349409f51a4afc11b0cbbb285dc12c255be6c161345a9bb36fa8b6af4"
+    },
+    {
+      "file": "css-backgrounds.json",
+      "sha256": "6403c37cae0ee9fa2e722b961ca578f1d45dc41b09ca1ebca234ebd4b74230a9"
+    },
+    {
+      "file": "css-borders.json",
+      "sha256": "250c788a373f80f99eda011f8664379f297c46a8695229cd4c374dc0096fe83f"
+    },
+    {
+      "file": "css-box.json",
+      "sha256": "c0470044876f1b006506e2041cdb980ceba7950bbbd276e8b35c73de943bce1e"
+    },
+    {
+      "file": "css-break.json",
+      "sha256": "08d15d2f8d8ac27efe77c5eb94506b6baadef1d566c7b544d45abd0788054e7d"
+    },
+    {
+      "file": "css-cascade-6.json",
+      "sha256": "6cae4c897599c6b4c10433c94feffefa63e14d77803b701493b6c5cda87a271e"
+    },
+    {
+      "file": "css-cascade.json",
+      "sha256": "c63ad202ca4ff55a441b848f3e085ca94ff17dd753a2e4965a12d2f116485693"
+    },
+    {
+      "file": "css-color-5.json",
+      "sha256": "b4f59290922d4836f4b12e39e1c8df10f0d61c44c59eead055f0e1ebd87502f2"
+    },
+    {
+      "file": "css-color-6.json",
+      "sha256": "89563384367813cea43c549e729d12a0882b3ede296c7228bcf800f12c89cbda"
+    },
+    {
+      "file": "css-color-adjust.json",
+      "sha256": "9c080bb24412416986b60473d4154a52034ebd9ed10059918b356515fc3ca59e"
+    },
+    {
+      "file": "css-color-hdr.json",
+      "sha256": "00ddb3175a775f8247d2a685c0fa6ce60ff38460870e472ff0ee8100f425b032"
+    },
+    {
+      "file": "css-color.json",
+      "sha256": "c918d90548f40431252a6d2927dd7583f1c3e6b4393e3fa1df43d16a7ebc4505"
+    },
+    {
+      "file": "css-conditional-4.json",
+      "sha256": "fa5433f1c55d5f418093658d004d674b2476470f6bd184d3d65fe546738056bd"
+    },
+    {
+      "file": "css-conditional-5.json",
+      "sha256": "74e939432e707f81be4f5b97820b195c1ce0d9a7d5dd52c3f4aded65d5771cad"
+    },
+    {
+      "file": "css-conditional.json",
+      "sha256": "a1275bbf8a454327859c2089e3cb6bdc3aa70f978ea94f66c17c125a12f19a1e"
+    },
+    {
+      "file": "css-contain.json",
+      "sha256": "9015b6f15827a655d2a5cfe8233a42c511851cf1bab45d4209d52166a8521442"
+    },
+    {
+      "file": "css-content.json",
+      "sha256": "2b47364a194fbe867c3f411144e5dbec00472bdc8f932ff302846360aa8a5512"
+    },
+    {
+      "file": "css-counter-styles.json",
+      "sha256": "cf8ae415040bc3bb6df56e9dec503ae0853ec0cfa27bb55bc3b885b7e148d85d"
+    },
+    {
+      "file": "css-display.json",
+      "sha256": "280b55558c923f6597ca565a40577648b40b5c05d744658576739315cc559ce0"
+    },
+    {
+      "file": "css-easing.json",
+      "sha256": "dd64a5920d89a0c5431a93fbf1371af2bd51cb30376a2a8085428c34b8933117"
+    },
+    {
+      "file": "css-env.json",
+      "sha256": "a190ca09ef2f30123d7a8b1938220dd3ac2b7536015c98369abe5943967982fb"
+    },
+    {
+      "file": "css-exclusions.json",
+      "sha256": "dd0d76c924e2b0337d4e2c58636754a2d86c082b8660827db4a34c8acccbc24c"
+    },
+    {
+      "file": "css-extensions.json",
+      "sha256": "cf33b19c124377932be3d71fe261267d325cc671ef5b7ff834ef40ee9fd45699"
+    },
+    {
+      "file": "css-flexbox.json",
+      "sha256": "fb4a88a585693a973e49ceb90bd081abd1502d048e55f342339830d105bb7689"
+    },
+    {
+      "file": "css-fonts-5.json",
+      "sha256": "ce534151e702ead5846ad4747317f6eebbbd70c94d67a7de24e882e8fb916413"
+    },
+    {
+      "file": "css-fonts.json",
+      "sha256": "1ea185a11ab2807f52d2298dfa0f6c51ab2c3b0d5d3683df4ee1646eb2cdd644"
+    },
+    {
+      "file": "css-forms.json",
+      "sha256": "5a400c6bee01499c45ba73a0b1f0c45785f2ebb36534debc46795ecbb93c911f"
+    },
+    {
+      "file": "css-gaps.json",
+      "sha256": "d830aec7b4959e359fc7d96999da2b3410098e33c9731a091f62e3d975b033e4"
+    },
+    {
+      "file": "css-gcpm-4.json",
+      "sha256": "7a61dab7f4905ffc6038498af1339f2ad14c35990cb45a270ccf8f2e20bc63e6"
+    },
+    {
+      "file": "css-gcpm.json",
+      "sha256": "c25aca281ef45a3d6f28e52550847ec9bb73f456abfa1b1585950b474ff34036"
+    },
+    {
+      "file": "css-grid-3.json",
+      "sha256": "999ca5aeaf54c95f2893314fc452b79992fdad7e4fbd84476d36b99b09a35af8"
+    },
+    {
+      "file": "css-grid.json",
+      "sha256": "70cd3bfa4418ddf3fe4e1c612454ae039fc0ca1500e152598d5244cfcc6b03e3"
+    },
+    {
+      "file": "css-image-animation.json",
+      "sha256": "13dbea3235f1f2f013593fece5aa742a6b1e867eeb7fc4afba8ad35b55bdea65"
+    },
+    {
+      "file": "css-images-4.json",
+      "sha256": "3f9fcea4ac0eaf3b55879588f7dddf6541587a1b1d71e91ea7adbdaef568abe0"
+    },
+    {
+      "file": "css-images-5.json",
+      "sha256": "8818d452480b2bbd0fa9a1bb4888542ea1be633a6a07eb34650936c51ec18d06"
+    },
+    {
+      "file": "css-images.json",
+      "sha256": "5d975389520f074319c9cf94a9d802e96c69effeb5e4c22c66ae8f3b7e8c5a6a"
+    },
+    {
+      "file": "css-inline.json",
+      "sha256": "d732e3d44fea57be05135a3a83afcd892795feb622895dca0a27c455cb1d52f2"
+    },
+    {
+      "file": "css-layout-api.json",
+      "sha256": "af6842801998c83ae29230353f4ef7037866f7e4dc5e833e569e3618c0100647"
+    },
+    {
+      "file": "css-line-grid.json",
+      "sha256": "2c7154d5307f9b1ae49ba10913525907bf2259b7dd2226191f5f6dd8dffc71cd"
+    },
+    {
+      "file": "css-link-params.json",
+      "sha256": "869d89c5b152687145213c537bcace0eb4b9167949da2705672cefa1f3add196"
+    },
+    {
+      "file": "css-lists.json",
+      "sha256": "fe798d5e45e5aa9159b61b60731d9cd1a60268d7b2dfc16e68e38864f9974411"
+    },
+    {
+      "file": "css-logical.json",
+      "sha256": "0cc663c0f3c2ca00b77feddd0359819940f2f531232a2f93565a713b8990e194"
+    },
+    {
+      "file": "css-masking.json",
+      "sha256": "56f5cf0497c1348355ecfcb85d9c76236d9319ee3da919a752cb9c5bf7a00aa5"
+    },
+    {
+      "file": "css-mixins.json",
+      "sha256": "0850ed73b43d930884f8df7575d203c798482284ffac8ed438f6d114573f0135"
+    },
+    {
+      "file": "css-multicol.json",
+      "sha256": "d038668a33b900f71ea7ce15754927dc649a7412a22788c35dacc75ece26253b"
+    },
+    {
+      "file": "css-namespaces.json",
+      "sha256": "7a80af13484a498c34ad4fca3dedecaa3fbe4e488bb2fd2e4e0d3509ce3527bf"
+    },
+    {
+      "file": "css-nav.json",
+      "sha256": "5289868c937f1e9ea6500a80bd7a90f321a15fdbeff5586a846868f69892f2b9"
+    },
+    {
+      "file": "css-navigation.json",
+      "sha256": "2c573b1755eb829f518a2e87bed567c7cfcfe393696f518ddf63f3343f967515"
+    },
+    {
+      "file": "css-nesting.json",
+      "sha256": "d8861792ded766467d310bf548a83f7e67d0bd194ed1b9ebd2f9e114fbe414fc"
+    },
+    {
+      "file": "css-overflow-4.json",
+      "sha256": "bdb3a32fa114717bb2245caa51fbcb07c2b9b7b13f25014d70aa025e54426ec1"
+    },
+    {
+      "file": "css-overflow-5.json",
+      "sha256": "1375b6c7d6c9bdb11aea292e90132f26a92d3b8b109b187aac00687b0922abaa"
+    },
+    {
+      "file": "css-overflow.json",
+      "sha256": "3ffc7bd0eb18c1a8e1562547ad2744808229c96bf8adff09dc9b361457b003c4"
+    },
+    {
+      "file": "css-overscroll.json",
+      "sha256": "fc146fd0311103558512ab4988d739bfc5b4121cfd586f0fbc028c3dc2f6a4a6"
+    },
+    {
+      "file": "css-page-floats.json",
+      "sha256": "d263a126397ceddc04618e94cb7bb6e437fb277b4f7db79ecda808d63197302d"
+    },
+    {
+      "file": "css-page.json",
+      "sha256": "66fbd46825c4f5fab1ca62ec25c4e3df142059b1a7cd081080ccec2e8efd0e52"
+    },
+    {
+      "file": "css-paint-api.json",
+      "sha256": "5703e3129063319595fa7329efc26cb7068131b4b10bce468f94ae8f9a50d5cb"
+    },
+    {
+      "file": "css-position-4.json",
+      "sha256": "ef36091740a335cf3d1a70e4dc4c585b804876862da27f16f35655d5de42ed52"
+    },
+    {
+      "file": "css-position.json",
+      "sha256": "e97f144112a44e2109d3b40e2f7aaddd8773718cfc53719887866b7132f00e0a"
+    },
+    {
+      "file": "css-properties-values-api.json",
+      "sha256": "f36eb831740d553cee9f3a47610d3478a955d4acf4bfe293615e5a835ca7e492"
+    },
+    {
+      "file": "css-pseudo.json",
+      "sha256": "93f5c84da0204102260f01851bf1089777d8f1b3e293c909df08f10f48d2e5ab"
+    },
+    {
+      "file": "css-regions.json",
+      "sha256": "b0ef8ed3b608d91aece2e9017c7ff081a0fbe4b4e6c73938e6a39c71c746be04"
+    },
+    {
+      "file": "css-rhythm.json",
+      "sha256": "095c159c3caf749b4fdb3cc98a9a314e28ddd112058f6e7301516c08a992d965"
+    },
+    {
+      "file": "css-round-display.json",
+      "sha256": "0a4c7826791742a8ad2b3bc00fabc432ebb84a1d7dc8b97f11052562df11b668"
+    },
+    {
+      "file": "css-ruby.json",
+      "sha256": "818b6be4bcf39391479f025f3023587ad0a086827f01f1d2346d79dfa8bf72fc"
+    },
+    {
+      "file": "css-scroll-anchoring.json",
+      "sha256": "6bde6fc1cadcdde43e176b8d736d7778ca6d739c5c8119316e4bd0e1c990f205"
+    },
+    {
+      "file": "css-scroll-snap-2.json",
+      "sha256": "e9b6bf6b2c8e7bdf4591dcdf10a03e373a3d8a86920ca3c989d2721a458cccbb"
+    },
+    {
+      "file": "css-scroll-snap.json",
+      "sha256": "44779d2484e2d930b330a7405229af7ab71b516377f1bca3d04e8d4cd347fb40"
+    },
+    {
+      "file": "css-scrollbars.json",
+      "sha256": "dfc31995b0f38d90929101bc595af3b63c4d4f75c4a71f784ba25b7b32a27d21"
+    },
+    {
+      "file": "css-shadow.json",
+      "sha256": "c8af4c73c338b2c6a0503bfc021b4d68068e9d2b2979d429a7a10843986dc6d9"
+    },
+    {
+      "file": "css-shapes-2.json",
+      "sha256": "0fb6d3f5979cdc77e4cc2588ebd63a281052dae941460863127323c785645b44"
+    },
+    {
+      "file": "css-shapes.json",
+      "sha256": "7c63b3bc9fee148866baf50f18b065e391ef50cd0a8f6dbaafcb21ead8ace803"
+    },
+    {
+      "file": "css-size-adjust.json",
+      "sha256": "3a995512cefc4df3a3e162e8a302f31fe99d4cbeb3ef9a3482c9f72f51686374"
+    },
+    {
+      "file": "css-sizing-4.json",
+      "sha256": "f4f3ec4e19fa709bc89b6238bed38bcd342bbb6f74e132d03b845ae8634836ac"
+    },
+    {
+      "file": "css-sizing.json",
+      "sha256": "52ad4ce0c10de6373d33a4b0fd6173bf8db4e66a6c8476f07fb25f5ed880e179"
+    },
+    {
+      "file": "css-speech.json",
+      "sha256": "158aab8dfb7371dc8c53bbf2c93d37ec374dfb81522a9315a5e14f59bd824da0"
+    },
+    {
+      "file": "css-syntax.json",
+      "sha256": "3d20ec368486b938ef114e3eba783c8896ba8cc42cf319439c9f3b08419bf146"
+    },
+    {
+      "file": "css-tables.json",
+      "sha256": "15e12feb1f8dc0a065de6f219e8e9f870ea19a6b907a1788e351e5faa15a992b"
+    },
+    {
+      "file": "css-text-4.json",
+      "sha256": "23e8b7ed1e374e338691b093d36bdd7ed54cca03b714a0a7f07a628308efcfb5"
+    },
+    {
+      "file": "css-text-5.json",
+      "sha256": "15dd1083066278699d4b7efee9d09c58a73a0f4742b7c34883e38cfe5ff41037"
+    },
+    {
+      "file": "css-text-decor-4.json",
+      "sha256": "6982785ee2bd98609d3d3b7d35d1d461d14e704ad56111f327ddbb37c7670952"
+    },
+    {
+      "file": "css-text-decor.json",
+      "sha256": "4c8ea99f9a8ee79a1e0c7507ecbe952a18ff21df7dc0370911fb470874be4ce0"
+    },
+    {
+      "file": "css-text.json",
+      "sha256": "f6dea5cff0fbd8d9e1791936b458b2446e27c0bfa190c1cee9c2c9cd54bed9cf"
+    },
+    {
+      "file": "css-transforms-2.json",
+      "sha256": "74e70be64d65b059825788bbd3e03ebfcdc85371f6f235add4db7e305d12ede3"
+    },
+    {
+      "file": "css-transforms.json",
+      "sha256": "b750ffa75041acc54b3ce8e02b7be8e79a2b271faf61fc73f8185fe74f4b91c6"
+    },
+    {
+      "file": "css-transitions-2.json",
+      "sha256": "3116a99fd92bb68c910c7e7c14a68d5cb4778b70177562857db6cfc80599ab2d"
+    },
+    {
+      "file": "css-transitions.json",
+      "sha256": "c39bb73d589ea408f6401bd7243dc4775bae96019349d0117d5dee42e4938a75"
+    },
+    {
+      "file": "css-ui.json",
+      "sha256": "96b40d0ccd4873be541667b18fb072c1ef819b70c97a6fee5208a8816d5e847f"
+    },
+    {
+      "file": "css-values-5.json",
+      "sha256": "6acf12489736e5f407a73e695a275303d73371c5efc533eb0bc018ee67c483cd"
+    },
+    {
+      "file": "css-values.json",
+      "sha256": "3925a4abb6bd2ff1edd9d313d9d56bdc6e62b66e787f3ac94d0c9f481b86afbe"
+    },
+    {
+      "file": "css-variables.json",
+      "sha256": "e4e6243435f98abba4ba17993ca254d6c36ebe5a57909343ba8196c4fe1b2b2e"
+    },
+    {
+      "file": "css-view-transitions.json",
+      "sha256": "4a949eca80d221fe3c7f5de8fb507482971a2c78bc921251db4b937e916efe27"
+    },
+    {
+      "file": "css-viewport.json",
+      "sha256": "67b2332e9a006796bb2ee28d15aabce0457d3b81b024b5ea72c617a4a412c9ae"
+    },
+    {
+      "file": "css-will-change.json",
+      "sha256": "0e27f95e238dc83aca2931e981d7a16d09ffe75fd1481820bb3c368f16f30a45"
+    },
+    {
+      "file": "css-writing-modes.json",
+      "sha256": "7cfbfc0913d63a0fcf1ef863f09ea9b94360bc4737c914cb997e8ed25ab9d163"
+    },
+    {
+      "file": "CSS.json",
+      "sha256": "67e01f90f2d14596733db891416233204f3adf454d4ddc99aba27ac37b1bb70c"
+    },
+    {
+      "file": "fill-stroke.json",
+      "sha256": "584383bd988e4ee21cf6d15b3978b944d93aee9226b764664bc032d5c2e8fa67"
+    },
+    {
+      "file": "filter-effects-2.json",
+      "sha256": "138f599232d18993678f5b103e947d7029647dfdd5915b3d28d4edfec10a77ff"
+    },
+    {
+      "file": "filter-effects.json",
+      "sha256": "08fa7d71e05dd89504ce736fa70068de11ab26f4cd16af16c3a2af1670399d70"
+    },
+    {
+      "file": "fullscreen.json",
+      "sha256": "a312a4d531f3985da835f3e1d40bc381d062f4303ed0d83a1fcb421a2c0a1428"
+    },
+    {
+      "file": "html.json",
+      "sha256": "f976756cab113f1861b5a1850525256f2cb16c7f9a210c06f3d017be8a28f3ac"
+    },
+    {
+      "file": "mathml-core.json",
+      "sha256": "96e034b35568af97346491bcfc33f9027ca2b5160a07ae92457d19f5e43ac63e"
+    },
+    {
+      "file": "mediaqueries-5.json",
+      "sha256": "2a7f2d5f84afb62a5a94f3c2cf504015a2b047c77ebe03466ea6e13cbc236cf6"
+    },
+    {
+      "file": "mediaqueries.json",
+      "sha256": "bc616fc5715c6685d1c526e609aa1e6735a631ea161c581a04fed89c9691745f"
+    },
+    {
+      "file": "motion.json",
+      "sha256": "0279a284652dc428a095014333b8d3a45d4bdc900551177485578baea86a0ecd"
+    },
+    {
+      "file": "pointer-animations.json",
+      "sha256": "2bb9f52d6c6db95e1eaa50e3b2f39852d2f94bab8eb567a63fd82b266e5e7289"
+    },
+    {
+      "file": "scroll-animations.json",
+      "sha256": "eb934644662de7a692e1836b0ce0407c4df252c50bcf4d12d543cf4f540a5cf6"
+    },
+    {
+      "file": "selectors-5.json",
+      "sha256": "7af60436152b015250bc169bb0cd4049676eb6f40d3b3fb4431fd48384e511d7"
+    },
+    {
+      "file": "selectors.json",
+      "sha256": "1d5893bcd8ed853635be8c6c1362a121c10b850b0a30169e5726d4ac724077f5"
+    },
+    {
+      "file": "svg-strokes.json",
+      "sha256": "f24b20a550dff3240f78c4c2c8b58d0080e045046b26987f00608105369ceaed"
+    },
+    {
+      "file": "SVG.json",
+      "sha256": "a9f95c43687110570bc4ba850c4da16f620a27c9e36b092a7da4b54f6549b649"
+    },
+    {
+      "file": "upgrade-insecure-requests.json",
+      "sha256": "961fe478954dd7c3da7d370c2555a4297665e799f01bdf344f6e280616da526d"
+    },
+    {
+      "file": "webvtt.json",
+      "sha256": "7145fba05d67fcb7e1660e628216bc8631c2878cc9991bb6f48f97f02672549e"
+    },
+    {
+      "file": "webxr-dom-overlays.json",
+      "sha256": "52f6b358b5c0c0117ae83b404856daa3cc73211adaab5199f58ccfab60741245"
+    },
+    {
+      "file": "window-management.json",
+      "sha256": "06c5eb9b3c34159b37ed84e56187121fc405b26a4836f10eefa64d80d1201259"
+    }
+  ]
+}

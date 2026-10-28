@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <PackageId>Ranvier.Css.Bindings</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Bindings.Traced</PackageId>
+    <Version>0.1.0-alpha.3</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>Specification-generated typed CSS properties and ergonomic helpers for Ranvier.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" />
+    <Compile Include="Generated/Css.fs" />
+    <None Include="Generated/Css.manifest.json" Pack="true" PackagePath="metadata/" />
+    <None Include="../Ranvier.Css/README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>

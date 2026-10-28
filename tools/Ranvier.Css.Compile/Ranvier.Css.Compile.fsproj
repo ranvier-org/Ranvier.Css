@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Compiler.Service" Version="43.12.403" />
+    <ProjectReference Include="../../src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj" />
+    <Compile Include="Model.fs" />
+    <Compile Include="Project.fs" />
+    <Compile Include="CompactMetadata.fs" />
+    <Compile Include="CompactEvaluation.fs" />
+    <Compile Include="Metadata.fs" />
+    <Compile Include="Evaluation.fs" />
+    <Compile Include="Extractor.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ranvier.Css.Compile.Tests" />
+  </ItemGroup>
+</Project>

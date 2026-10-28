@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <PackageId>Ranvier.Css</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Traced</PackageId>
+    <Version>0.1.0-alpha.4</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>Typed CSS values, stylesheets and composable reactive utilities for Ranvier on .NET and Fable.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Values.fs" />
+    <Compile Include="GrammarRuntime.fs" />
+    <Compile Include="NumericSemantics.fs" />
+    <Compile Include="Calculations.fs" />
+    <Compile Include="Stylesheet.fs" />
+    <Compile Include="Styles.fs" />
+    <Compile Include="Utilities.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>

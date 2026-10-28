@@ -1,0 +1,39 @@
+<Solution>
+  <Folder Name="/.environment/">
+    <File Path=".editorconfig" />
+    <File Path=".gitignore" />
+    <File Path=".config/dotnet-tools.json" />
+    <File Path="global.json" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Build.targets" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+    <File Path="CONTRIBUTOR.md" />
+    <File Path="package.json" />
+  </Folder>
+  <Folder Name="/Build/">
+    <File Path="build.fsx" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Ranvier.Css/Ranvier.Css.fsproj" />
+    <Project Path="src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj" />
+    <Project Path="src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj" />
+    <Project Path="src/Ranvier.Css.View/Ranvier.Css.View.fsproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Ranvier.Css.Spec.Tests/Ranvier.Css.Spec.Tests.fsproj" />
+    <Project Path="tests/Ranvier.Css.Compile.Tests/Ranvier.Css.Compile.Tests.fsproj" />
+    <Project Path="tests/Ranvier.Css.Browser.Tests/Ranvier.Css.Browser.Tests.fsproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj" />
+    <Project Path="tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" />
+  </Folder>
+  <Folder Name="/examples/">
+    <Project Path="examples/Ranvier.Css.Example/Ranvier.Css.Example.fsproj" />
+    <Project Path="examples/Ranvier.Css.Utilities.Example/Ranvier.Css.Utilities.Example.fsproj" />
+  </Folder>
+  <Folder Name="/docs/">
+    <Project Path="docs/docs.fsproj" />
+  </Folder>
+</Solution>
