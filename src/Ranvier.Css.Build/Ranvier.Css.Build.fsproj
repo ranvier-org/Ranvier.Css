@@ -3,7 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <PackageId>Ranvier.Css.Build</PackageId>
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Build.Traced</PackageId>
-    <Version>0.1.0-alpha.2</Version>
+    <Version>0.1.1-alpha.1</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Deterministic static CSS asset compilation for Ranvier utilities and stylesheets.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

@@ -1,5 +1,5 @@
 ---
-last_commit_released: b2445ef15449e45043a63607e7af0ccf0036085c
+last_commit_released: d4b413b68d4142ef0237552d868dd031b3fe9926
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -9,5 +9,11 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.1.1-alpha.1 - 2026-10-28
+
+### Fixes
+
+- Initialize trusted publishing from the independent ranvier-org/Ranvier.Css repository.
 
 ## 0.1.0-alpha.4

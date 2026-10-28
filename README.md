@@ -66,6 +66,6 @@ Developer setup and CI use this command automatically.
 
 ## Releases
 
-Each library retains its version from Ranvier and has a ShipIt changelog with a project version updater. Configure trusted NuGet publishing and GitHub permissions as described in [CONTRIBUTOR.md](CONTRIBUTOR.md#maintainer-setup). Fable source packaging and optional `.Traced` package identities are preserved.
+Each library has a ShipIt changelog with a project version updater. Configure trusted NuGet publishing and GitHub permissions as described in [CONTRIBUTOR.md](CONTRIBUTOR.md#maintainer-setup). Fable source packaging and optional `.Traced` package identities are preserved.
 
 For a change spanning View and CSS, validate explicit source revisions in local mode first, release View, then update and validate CSS against that published version before releasing CSS. A View release alone does not require a CSS release.

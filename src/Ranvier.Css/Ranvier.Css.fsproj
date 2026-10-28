@@ -3,7 +3,7 @@
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
     <PackageId>Ranvier.Css</PackageId>
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Traced</PackageId>
-    <Version>0.1.0-alpha.4</Version>
+    <Version>0.1.1-alpha.1</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Typed CSS values, stylesheets and composable reactive utilities for Ranvier on .NET and Fable.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
