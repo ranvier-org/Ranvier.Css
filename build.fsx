@@ -208,9 +208,15 @@ module Stage =
         }
     }
 
-    let packTracedDom = stage "pack traced shared DOM adapters" {
+    let packTracedDom = stage "pack traced CSS adapter dependency cohort" {
+        run "dotnet pack src/Ranvier.Css/Ranvier.Css.fsproj -c Release -p:RanvierTrace=true -o bin"
+        run "dotnet pack src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
+    }
+
+    let checkDomPackages = stage "restore isolated CSS DOM package consumers" {
+        run "node tools/check-dom-package-consumers.mjs bin"
     }
 
     let local = input {
@@ -281,7 +287,7 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "ci" {
         description "Run the complete CI gates locally and pack the validated libraries"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages }
     }
     command "compile" {
         description "Compile CSS browser checks to JavaScript with fickl"
@@ -293,11 +299,11 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "pack" {
         description "Build and pack CSS libraries with Fable sources"
-        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom }
+        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages }
     }
     command "publish" {
         description "Validate all CSS gates and publish (--dry-publish to skip upload)"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.publish }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.publish }
     }
     command "docs" {
         description "Build documentation (--watch to serve it)"
