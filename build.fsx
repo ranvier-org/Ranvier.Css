@@ -16,6 +16,8 @@ module Spec =
         "src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj"
         "src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj"
         "src/Ranvier.Css.View/Ranvier.Css.View.fsproj"
+        "src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj"
+        "src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj"
     ]
     let tools = [ "tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj"; "tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" ]
     let localTools =
@@ -206,6 +208,11 @@ module Stage =
         }
     }
 
+    let packTracedDom = stage "pack traced shared DOM adapters" {
+        run "dotnet pack src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
+        run "dotnet pack src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
+    }
+
     let local = input {
         let! root = Options.ranvierRoot
         let root = Path.GetFullPath(root, Spec.root)
@@ -274,7 +281,7 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "ci" {
         description "Run the complete CI gates locally and pack the validated libraries"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom }
     }
     command "compile" {
         description "Compile CSS browser checks to JavaScript with fickl"
@@ -285,12 +292,12 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
         Command.pipeline { Stage.restore; Stage.format }
     }
     command "pack" {
-        description "Build and pack all four CSS libraries with Fable sources"
-        Command.pipeline { Stage.restore; Stage.build; Stage.pack }
+        description "Build and pack CSS libraries with Fable sources"
+        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom }
     }
     command "publish" {
         description "Validate all CSS gates and publish (--dry-publish to skip upload)"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.publish }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.publish }
     }
     command "docs" {
         description "Build documentation (--watch to serve it)"
