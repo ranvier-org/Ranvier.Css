@@ -19,6 +19,8 @@
     <Project Path="src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj" />
     <Project Path="src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj" />
     <Project Path="src/Ranvier.Css.View/Ranvier.Css.View.fsproj" />
+    <Project Path="src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj" />
+    <Project Path="src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/Ranvier.Css.Spec.Tests/Ranvier.Css.Spec.Tests.fsproj" />

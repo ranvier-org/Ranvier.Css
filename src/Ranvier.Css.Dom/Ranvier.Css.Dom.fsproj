@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <PackageId>Ranvier.Css.Dom</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Dom.Traced</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>Typed Ranvier.Css declarations for shared browser and native DOM style objects.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <WarnOn>$(WarnOn);3390</WarnOn>
+    <RanvierDomVersion Condition="'$(RanvierDomVersion)' == ''">0.1.0-alpha.11</RanvierDomVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" />
+    <PackageReference Include="Ranvier.Dom$(RanvierPackageSuffix)" Version="$(RanvierDomVersion)" />
+    <Compile Include="StyleDeclaration.fs" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(RanvierTrace)' == 'true'">
+    <AssemblyMetadata Include="RanvierTrace" Value="true" />
+  </ItemGroup>
+</Project>
