@@ -1,7 +1,14 @@
 namespace Ranvier.Css.Spec
 
+#if !FABLE_COMPILER
+open Ranvier.Css
+#endif
+
 /// <summary>A base dimension in the CSS numeric exponent map.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type NumericDimension =
     | Length
     | Angle
@@ -11,12 +18,62 @@ type NumericDimension =
     | Flex
     | Percent
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(context: Ranvier.Css.NativeDisplay.Context, depth: int, precedence: int) =
+        Ranvier.Css.NativeDisplay.union context depth precedence (box this) (fun _ ->
+            (match this with
+             | NumericDimension.Length -> "Length"
+             | NumericDimension.Angle -> "Angle"
+             | NumericDimension.Time -> "Time"
+             | NumericDimension.Frequency -> "Frequency"
+             | NumericDimension.Resolution -> "Resolution"
+             | NumericDimension.Flex -> "Flex"
+             | NumericDimension.Percent -> "Percent"),
+            [])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            Ranvier.Css.NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
+
 /// <summary>A CSS numeric type with integer dimension powers and retained percentage provenance.</summary>
 type NumericType =
     {
         Exponents: Map<NumericDimension, int>
         PercentHint: NumericDimension option
     }
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, _p: int) =
+        NativeDisplay.record c d (box this) (fun n ->
+            [
+                "Exponents",
+                (fun () ->
+                    NativeDisplay.map
+                        c
+                        n
+                        3
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: NumericDimension) -> value.NativeDisplay (c, d, p)))
+                        (fun c d _ value -> NativeDisplay.int32 c d value)
+                        this.Exponents)
+                "PercentHint",
+                (fun () ->
+                    NativeDisplay.option
+                        c
+                        n
+                        3
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: NumericDimension) -> value.NativeDisplay (c, d, p)))
+                        this.PercentHint)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
 
 /// <summary>The percentage resolution rules of the surrounding calculation.</summary>
 type NumericContext =
@@ -25,8 +82,33 @@ type NumericContext =
         PercentageBasis: NumericDimension option
     }
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, _p: int) =
+        NativeDisplay.record c d (box this) (fun n ->
+            [
+                "PercentagesAllowed", (fun () -> NativeDisplay.boolean c n this.PercentagesAllowed)
+                "PercentageBasis",
+                (fun () ->
+                    NativeDisplay.option
+                        c
+                        n
+                        3
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: NumericDimension) -> value.NativeDisplay (c, d, p)))
+                        this.PercentageBasis)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A rounding strategy accepted by the CSS round function.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type RoundingStrategy =
     | Nearest
     | Up
@@ -34,8 +116,29 @@ type RoundingStrategy =
     | ToZero
     | LineWidth
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun _ ->
+            (match this with
+             | RoundingStrategy.Nearest -> "Nearest"
+             | RoundingStrategy.Up -> "Up"
+             | RoundingStrategy.Down -> "Down"
+             | RoundingStrategy.ToZero -> "ToZero"
+             | RoundingStrategy.LineWidth -> "LineWidth"),
+            [])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A typed calculation or a positional keyword in a CSS math function call.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type NumericArgument =
     | Value of NumericType
     | NoneBound
@@ -44,13 +147,77 @@ type NumericArgument =
     | RandomKey
     | WeightedValue of NumericType * float option
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let numeric value =
+                Some (fun p -> NativeDisplay.known c n value (fun (value: NumericType) -> value.NativeDisplay (c, n, p)))
+
+            match this with
+            | NumericArgument.Value value -> "Value", [ numeric value ]
+            | NumericArgument.NoneBound -> "NoneBound", []
+            | NumericArgument.Strategy value ->
+                "Strategy",
+                [
+                    Some (fun p -> NativeDisplay.known c n value (fun (value: RoundingStrategy) -> value.NativeDisplay (c, n, p)))
+                ]
+            | NumericArgument.NoClamp -> "NoClamp", []
+            | NumericArgument.RandomKey -> "RandomKey", []
+            | NumericArgument.WeightedValue (value, weight) ->
+                "WeightedValue",
+                [
+                    numeric value
+                    Some (fun p -> NativeDisplay.option c n p (fun c d _ value -> NativeDisplay.float64 c d value) weight)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A failure to combine numeric types or satisfy a math function contract.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type NumericError =
     | IncompatibleHints of NumericDimension * NumericDimension
     | IncompatibleTypes of NumericType * NumericType
     | UnknownFunction of string
     | InvalidArguments of functionName: string * reason: string
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            match this with
+            | NumericError.IncompatibleHints (a, b) ->
+                "IncompatibleHints",
+                [
+                    Some (fun p -> NativeDisplay.known c n a (fun (value: NumericDimension) -> value.NativeDisplay (c, n, p)))
+                    Some (fun p -> NativeDisplay.known c n b (fun (value: NumericDimension) -> value.NativeDisplay (c, n, p)))
+                ]
+            | NumericError.IncompatibleTypes (a, b) ->
+                "IncompatibleTypes",
+                [
+                    Some (fun p -> NativeDisplay.known c n a (fun (value: NumericType) -> value.NativeDisplay (c, n, p)))
+                    Some (fun p -> NativeDisplay.known c n b (fun (value: NumericType) -> value.NativeDisplay (c, n, p)))
+                ]
+            | NumericError.UnknownFunction name -> "UnknownFunction", [ Some (fun _ -> NativeDisplay.text c n name) ]
+            | NumericError.InvalidArguments (name, reason) ->
+                "InvalidArguments",
+                [
+                    Some (fun _ -> NativeDisplay.text c n name)
+                    Some (fun _ -> NativeDisplay.text c n reason)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
 
 /// <summary>A supported function's argument and result policies, with normative source URLs.</summary>
 type NumericFunctionPolicy =
@@ -63,6 +230,25 @@ type NumericFunctionPolicy =
         SourceUrls: string list
     }
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, _p: int) =
+        NativeDisplay.record c d (box this) (fun n ->
+            [
+                "Name", (fun () -> NativeDisplay.text c n this.Name)
+                "MinimumArguments", (fun () -> NativeDisplay.int32 c n this.MinimumArguments)
+                "MaximumArguments", (fun () -> NativeDisplay.option c n 3 (fun c d _ value -> NativeDisplay.int32 c d value) this.MaximumArguments)
+                "ArgumentPolicy", (fun () -> NativeDisplay.text c n this.ArgumentPolicy)
+                "ResultPolicy", (fun () -> NativeDisplay.text c n this.ResultPolicy)
+                "SourceUrls", (fun () -> NativeDisplay.list c n (fun c d _ value -> NativeDisplay.text c d value) this.SourceUrls)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A numeric operator's exponent-map rule and normative source URLs.</summary>
 type NumericOperatorPolicy =
     {
@@ -70,6 +256,22 @@ type NumericOperatorPolicy =
         TypePolicy: string
         SourceUrls: string list
     }
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, _p: int) =
+        NativeDisplay.record c d (box this) (fun n ->
+            [
+                "Operator", (fun () -> NativeDisplay.text c n this.Operator)
+                "TypePolicy", (fun () -> NativeDisplay.text c n this.TypePolicy)
+                "SourceUrls", (fun () -> NativeDisplay.list c n (fun c d _ value -> NativeDisplay.text c d value) this.SourceUrls)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
 
 /// <summary>CSS Values 4 calculation typing and CSS Typed OM exponent-map algebra.</summary>
 module NumericSemantics =

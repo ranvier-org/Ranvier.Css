@@ -10,6 +10,7 @@
     <WarnOn>$(WarnOn);3390</WarnOn>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="NativeDisplay.fs" />
     <Compile Include="Values.fs" />
     <Compile Include="GrammarRuntime.fs" />
     <Compile Include="NumericSemantics.fs" />
@@ -19,6 +20,7 @@
     <Compile Include="Utilities.fs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="NativeDisplay.LICENSE.txt" Pack="true" PackagePath="/" />
     <None Include="README.md" Pack="true" PackagePath="/" />
     <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>

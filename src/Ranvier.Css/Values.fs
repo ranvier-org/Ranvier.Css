@@ -5,7 +5,38 @@ open System.Globalization
 open System.Text.RegularExpressions
 
 /// <summary>Opaque serialized CSS storage retaining its nominal grammar marker.</summary>
-type ValueStorage<'syntax> = internal ValueStorage of text: string * numeric: (float * string) option
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+type ValueStorage<'syntax> =
+    internal
+    | ValueStorage of text: string * numeric: (float * string) option
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+        let (ValueStorage (text, numeric)) = this
+
+        NativeDisplay.union context depth precedence (box this) (fun nested ->
+            "ValueStorage",
+            [
+                Some (fun _ -> NativeDisplay.text context nested text)
+                Some (fun p ->
+                    NativeDisplay.option
+                        context
+                        nested
+                        p
+                        (fun c d _ (number, unitName) ->
+                            NativeDisplay.tuple c d (box (number, unitName)) (fun n ->
+                                [ NativeDisplay.float64 c n number; NativeDisplay.text c n unitName ]))
+                        numeric)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
 
 /// <summary>A serialized CSS value with a nominal grammar marker and optional numeric dimension.</summary>
 type Value<'syntax>(storage: ValueStorage<'syntax>) =
@@ -37,7 +68,31 @@ type Value<'syntax>(storage: ValueStorage<'syntax>) =
             | _ -> invalidArg "other" "Values have different CSS grammar markers."
 
 /// <summary>A CSS declaration retaining its importance and exact value text.</summary>
-type Declaration = private Declaration of name: string * text: string * important: bool
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+type Declaration =
+    private
+    | Declaration of name: string * text: string * important: bool
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+        let (Declaration (name, text, important)) = this
+
+        NativeDisplay.union context depth precedence (box this) (fun nested ->
+            "Declaration",
+            [
+                Some (fun _ -> NativeDisplay.text context nested name)
+                Some (fun _ -> NativeDisplay.text context nested text)
+                Some (fun _ -> NativeDisplay.boolean context nested important)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
 
 module private NumberText =
     let format (number: float) =
@@ -341,7 +396,26 @@ module Declaration =
         |> String.concat " "
 
 /// <summary>A named CSS variable restricted to values of the same grammar marker.</summary>
-type CustomProperty<'syntax> = private CustomProperty of string
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+type CustomProperty<'syntax> =
+    private
+    | CustomProperty of string
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+        let (CustomProperty name) = this
+
+        NativeDisplay.union context depth precedence (box this) (fun nested ->
+            "CustomProperty", [ Some (fun _ -> NativeDisplay.text context nested name) ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
 
 /// <summary>Typed CSS custom-property references and declarations.</summary>
 module CustomProperty =

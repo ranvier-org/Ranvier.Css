@@ -5,20 +5,91 @@ open Ranvier.Css.Spec
 
 /// <summary>A structured CSS easing curve; control coordinates and stop ranges are validated by interpolation construction.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type CalculationEasing =
     | Keyword of string
     | CubicBezier of float * float * float * float
     | Steps of count: int * position: string
     | Linear of (float * float list) list
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let number value =
+                Some (fun _ -> NativeDisplay.float64 c n value)
+
+            match this with
+            | CalculationEasing.Keyword text -> "Keyword", [ Some (fun _ -> NativeDisplay.text c n text) ]
+            | CalculationEasing.CubicBezier (a, b, x, y) -> "CubicBezier", [ number a; number b; number x; number y ]
+            | CalculationEasing.Steps (count, position) ->
+                "Steps",
+                [
+                    Some (fun _ -> NativeDisplay.int32 c n count)
+                    Some (fun _ -> NativeDisplay.text c n position)
+                ]
+            | CalculationEasing.Linear stops ->
+                "Linear",
+                [
+                    Some (fun _ ->
+                        NativeDisplay.list
+                            c
+                            n
+                            (fun c d _ (value, positions) ->
+                                NativeDisplay.tuple c d (box (value, positions)) (fun t ->
+                                    [
+                                        NativeDisplay.float64 c t value
+                                        NativeDisplay.list c t (fun c d _ value -> NativeDisplay.float64 c d value) positions
+                                    ]))
+                            stops)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A CSS random cache key or a fixed browser random base value.</summary>
 [<RequireQualifiedAccess>]
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type CalculationRandomKey =
     | Auto
     | Fixed of float
     | Scoped of name: string option * elementScoped: bool * propertyScope: string option
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let textOption value =
+                Some (fun p -> NativeDisplay.option c n p (fun c d _ value -> NativeDisplay.text c d value) value)
+
+            match this with
+            | CalculationRandomKey.Auto -> "Auto", []
+            | CalculationRandomKey.Fixed value -> "Fixed", [ Some (fun _ -> NativeDisplay.float64 c n value) ]
+            | CalculationRandomKey.Scoped (name, scoped, property) ->
+                "Scoped",
+                [
+                    textOption name
+                    Some (fun _ -> NativeDisplay.boolean c n scoped)
+                    textOption property
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>An opaque CSS arithmetic tree retaining terminal types, grouping and percentage provenance.</summary>
+#if !FABLE_COMPILER
+[<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
 type Calculation =
     private
     | Literal of production: string * text: string
@@ -30,8 +101,82 @@ type Calculation =
     | Function of name: string * arguments: CalculationArgument list
     | Interpolate of CalculationProgress * CalculationEasing option * CalculationEasing option * CalculationInterpolationStop list
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let text value =
+                Some (fun _ -> NativeDisplay.text c n value)
+
+            let calc value =
+                Some (fun p -> NativeDisplay.known c n value (fun (value: Calculation) -> value.NativeDisplay (c, n, p)))
+
+            let easing value =
+                Some (fun p ->
+                    NativeDisplay.option
+                        c
+                        n
+                        p
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: CalculationEasing) -> value.NativeDisplay (c, d, p)))
+                        value)
+
+            match this with
+            | Literal (production, value) -> "Literal", [ text production; text value ]
+            | Binary (operation, left, right) -> "Binary", [ text operation; calc left; calc right ]
+            | Negate value -> "Negate", [ calc value ]
+            | Constant value -> "Constant", [ text value ]
+            | Size -> "Size", []
+            | Reference (production, name, fallback) ->
+                "Reference",
+                [
+                    text production
+                    text name
+                    Some (fun p ->
+                        NativeDisplay.option
+                            c
+                            n
+                            p
+                            (fun c d p value -> NativeDisplay.known c d value (fun (value: Calculation) -> value.NativeDisplay (c, d, p)))
+                            fallback)
+                ]
+            | Function (name, arguments) ->
+                "Function",
+                [
+                    text name
+                    Some (fun _ ->
+                        NativeDisplay.list
+                            c
+                            n
+                            (fun c d p value -> NativeDisplay.known c d value (fun (value: CalculationArgument) -> value.NativeDisplay (c, d, p)))
+                            arguments)
+                ]
+            | Interpolate (progress, before, after, stops) ->
+                "Interpolate",
+                [
+                    Some (fun p -> NativeDisplay.known c n progress (fun (value: CalculationProgress) -> value.NativeDisplay (c, n, p)))
+                    easing before
+                    easing after
+                    Some (fun _ ->
+                        NativeDisplay.list
+                            c
+                            n
+                            (fun c d p value ->
+                                NativeDisplay.known c d value (fun (value: CalculationInterpolationStop) -> value.NativeDisplay (c, d, p)))
+                            stops)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A numeric expression or a keyword occupying a CSS math function argument slot.</summary>
+#if FABLE_COMPILER
 and [<RequireQualifiedAccess>] CalculationArgument =
+#else
+and [<RequireQualifiedAccess; System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>] CalculationArgument =
+#endif
     | Value of Calculation
     | NoneBound
     | Strategy of RoundingStrategy
@@ -39,21 +184,148 @@ and [<RequireQualifiedAccess>] CalculationArgument =
     | RandomKey of CalculationRandomKey
     | WeightedValue of Calculation * float option
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let calc value =
+                Some (fun p -> NativeDisplay.known c n value (fun (value: Calculation) -> value.NativeDisplay (c, n, p)))
+
+            match this with
+            | CalculationArgument.Value value -> "Value", [ calc value ]
+            | CalculationArgument.NoneBound -> "NoneBound", []
+            | CalculationArgument.Strategy strategy ->
+                let label =
+                    match strategy with
+                    | RoundingStrategy.Nearest -> "Nearest"
+                    | RoundingStrategy.Up -> "Up"
+                    | RoundingStrategy.Down -> "Down"
+                    | RoundingStrategy.ToZero -> "ToZero"
+                    | RoundingStrategy.LineWidth -> "LineWidth"
+
+                "Strategy",
+                [
+                    Some (fun p -> NativeDisplay.union c n p (box strategy) (fun _ -> label, []))
+                ]
+            | CalculationArgument.NoClamp -> "NoClamp", []
+            | CalculationArgument.RandomKey key ->
+                "RandomKey",
+                [
+                    Some (fun p -> NativeDisplay.known c n key (fun (value: CalculationRandomKey) -> value.NativeDisplay (c, n, p)))
+                ]
+            | CalculationArgument.WeightedValue (value, weight) ->
+                "WeightedValue",
+                [
+                    calc value
+                    Some (fun p -> NativeDisplay.option c n p (fun c d _ value -> NativeDisplay.float64 c d value) weight)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>The numeric or browser timeline source of an interpolation map.</summary>
+#if FABLE_COMPILER
 and [<RequireQualifiedAccess>] CalculationProgress =
+#else
+and [<RequireQualifiedAccess; System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>] CalculationProgress =
+#endif
     | Value of Calculation
     | Timeline of CalculationTimeline
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            match this with
+            | CalculationProgress.Value value ->
+                "Value",
+                [
+                    Some (fun p -> NativeDisplay.known c n value (fun (value: Calculation) -> value.NativeDisplay (c, n, p)))
+                ]
+            | CalculationProgress.Timeline value ->
+                "Timeline",
+                [
+                    Some (fun p -> NativeDisplay.known c n value (fun (value: CalculationTimeline) -> value.NativeDisplay (c, n, p)))
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>A named, scroll or view animation timeline; named timelines declare their absolute dimension.</summary>
+#if FABLE_COMPILER
 and [<RequireQualifiedAccess>] CalculationTimeline =
+#else
+and [<RequireQualifiedAccess; System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>] CalculationTimeline =
+#endif
     | Named of name: string * dimension: NumericDimension
     | Scroll of scroller: string option * axis: string option
     | View of axis: string option * insets: CalculationInset list
 
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            let textOption value =
+                Some (fun p -> NativeDisplay.option c n p (fun c d _ value -> NativeDisplay.text c d value) value)
+
+            match this with
+            | CalculationTimeline.Named (name, dimension) ->
+                "Named",
+                [
+                    Some (fun _ -> NativeDisplay.text c n name)
+                    Some (fun p -> NativeDisplay.known c n dimension (fun (value: NumericDimension) -> value.NativeDisplay (c, n, p)))
+                ]
+            | CalculationTimeline.Scroll (scroller, axis) -> "Scroll", [ textOption scroller; textOption axis ]
+            | CalculationTimeline.View (axis, insets) ->
+                "View",
+                [
+                    textOption axis
+                    Some (fun _ ->
+                        NativeDisplay.list
+                            c
+                            n
+                            (fun c d p value -> NativeDisplay.known c d value (fun (value: CalculationInset) -> value.NativeDisplay (c, d, p)))
+                            insets)
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
+
 /// <summary>An automatic or numeric view timeline inset.</summary>
+#if FABLE_COMPILER
 and [<RequireQualifiedAccess>] CalculationInset =
+#else
+and [<RequireQualifiedAccess; System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>] CalculationInset =
+#endif
     | Auto
     | Value of Calculation
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, p: int) =
+        NativeDisplay.union c d p (box this) (fun n ->
+            match this with
+            | CalculationInset.Auto -> "Auto", []
+            | CalculationInset.Value value ->
+                "Value",
+                [
+                    Some (fun p -> NativeDisplay.known c n value (fun (value: Calculation) -> value.NativeDisplay (c, n, p)))
+                ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
 
 /// <summary>An interpolation stop with one or two independent input positions and an optional preceding segment easing.</summary>
 and CalculationInterpolationStop =
@@ -62,6 +334,35 @@ and CalculationInterpolationStop =
         Value: Calculation
         EasingBefore: CalculationEasing option
     }
+
+#if !FABLE_COMPILER
+    member internal this.NativeDisplay(c: NativeDisplay.Context, d: int, _p: int) =
+        NativeDisplay.record c d (box this) (fun n ->
+            [
+                "Positions",
+                (fun () ->
+                    NativeDisplay.list
+                        c
+                        n
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: Calculation) -> value.NativeDisplay (c, d, p)))
+                        this.Positions)
+                "Value", (fun () -> NativeDisplay.known c n this.Value (fun (value: Calculation) -> value.NativeDisplay (c, n, 3)))
+                "EasingBefore",
+                (fun () ->
+                    NativeDisplay.option
+                        c
+                        n
+                        3
+                        (fun c d p value -> NativeDisplay.known c d value (fun (value: CalculationEasing) -> value.NativeDisplay (c, d, p)))
+                        this.EasingBefore)
+            ])
+
+    override this.ToString() =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%+A" this
+        else
+            NativeDisplay.format (fun c d p -> this.NativeDisplay (c, d, p))
+#endif
 
 /// <summary>An intrinsic sizing calculation admitted only by sizing destinations.</summary>
 type IntrinsicCalculation = private IntrinsicCalculation of IntrinsicBasis * Calculation
@@ -77,6 +378,14 @@ and [<RequireQualifiedAccess>] IntrinsicBasis =
 
 /// <summary>Constructs unevaluated arithmetic, infers CSS numeric types and validates completed declarations.</summary>
 module CalculationRuntime =
+#if !FABLE_COMPILER
+    let private numericErrorText (error: NumericError) =
+        if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+            sprintf "%A" error
+        else
+            NativeDisplay.format (fun c d p -> error.NativeDisplay (c, d, p))
+#endif
+
     let private lengthUnits =
         Set.ofList
             [
@@ -841,7 +1150,15 @@ module CalculationRuntime =
 
         match validate value with
         | Ok () -> Declaration.create name (renderIntrinsic value)
+#if FABLE_COMPILER
         | Error error -> invalidArg "value" (sprintf "Invalid intrinsic CSS calculation: %A" error)
+#else
+        | Error error ->
+            invalidArg
+                "value"
+                ("Invalid intrinsic CSS calculation: "
+                 + numericErrorText error)
+#endif
 
     /// <summary>Validates the completed calculation against its property context and expected primitive before serialization.</summary>
     /// <remarks>Numeric arithmetic and range handling remain deferred to CSS computed-value resolution.</remarks>
@@ -854,4 +1171,12 @@ module CalculationRuntime =
         match completed with
         | Ok actual when NumericSemantics.matches context expected actual -> Declaration.create name (render calculation)
         | Ok _ -> invalidArg "calculation" "CSS calculation does not match the property's numeric production."
+#if FABLE_COMPILER
         | Error error -> invalidArg "calculation" (sprintf "Invalid CSS calculation: %A" error)
+#else
+        | Error error ->
+            invalidArg
+                "calculation"
+                ("Invalid CSS calculation: "
+                 + numericErrorText error)
+#endif

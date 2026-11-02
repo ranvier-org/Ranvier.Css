@@ -36,13 +36,106 @@ module GrammarRuntime =
             Upper: (float * string) option
         }
 
+#if !FABLE_COMPILER
+        member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, _precedence: int) =
+            let numeric c d p value =
+                NativeDisplay.option
+                    c
+                    d
+                    p
+                    (fun c d _ (number, unitName) ->
+                        NativeDisplay.tuple c d (box (number, unitName)) (fun n ->
+                            [ NativeDisplay.float64 c n number; NativeDisplay.text c n unitName ]))
+                    value
+
+            NativeDisplay.record context depth (box this) (fun n ->
+                [
+                    "Id", (fun () -> NativeDisplay.int32 context n this.Id)
+                    "Kind", (fun () -> NativeDisplay.int32 context n this.Kind)
+                    "Text", (fun () -> NativeDisplay.text context n this.Text)
+                    "Target", (fun () -> NativeDisplay.int32 context n this.Target)
+                    "Children", (fun () -> NativeDisplay.array context n (fun c d _ x -> NativeDisplay.int32 c d x) this.Children)
+                    "Separators", (fun () -> NativeDisplay.array context n (fun c d _ x -> NativeDisplay.text c d x) this.Separators)
+                    "Minimum", (fun () -> NativeDisplay.int32 context n this.Minimum)
+                    "Maximum", (fun () -> NativeDisplay.int32 context n this.Maximum)
+                    "CommaSeparated", (fun () -> NativeDisplay.boolean context n this.CommaSeparated)
+                    "Lower", (fun () -> numeric context n 3 this.Lower)
+                    "Upper", (fun () -> numeric context n 3 this.Upper)
+                ])
+
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
+
     /// <summary>Immutable resolved grammar lookup. Creation copies caller-owned node arrays.</summary>
-    type Table = private Table of Map<int, Node>
+#if !FABLE_COMPILER
+    [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+    type Table =
+        private
+        | Table of Map<int, Node>
+
+#if !FABLE_COMPILER
+        member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+            let (Table nodes) = this
+
+            NativeDisplay.union context depth precedence (box this) (fun n ->
+                "Table",
+                [
+                    Some (fun p ->
+                        NativeDisplay.map
+                            context
+                            n
+                            p
+                            (fun c d _ value -> NativeDisplay.int32 c d value)
+                            (fun c d p value -> NativeDisplay.known c d value (fun (value: Node) -> value.NativeDisplay (c, d, p)))
+                            nodes)
+                ])
+
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
 
     /// <summary>Serialized grammar evidence retaining its node identity and optional numeric token metadata.</summary>
+#if !FABLE_COMPILER
+    [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
     type ValueData =
         private
         | ValueData of nodeId: int * text: string * numeric: (float * string) option
+
+#if !FABLE_COMPILER
+        member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+            let (ValueData (id, text, numeric)) = this
+
+            NativeDisplay.union context depth precedence (box this) (fun n ->
+                "ValueData",
+                [
+                    Some (fun _ -> NativeDisplay.int32 context n id)
+                    Some (fun _ -> NativeDisplay.text context n text)
+                    Some (fun p ->
+                        NativeDisplay.option
+                            context
+                            n
+                            p
+                            (fun c d _ (number, unitName) ->
+                                NativeDisplay.tuple c d (box (number, unitName)) (fun inner ->
+                                    [ NativeDisplay.float64 c inner number; NativeDisplay.text c inner unitName ]))
+                            numeric)
+                ])
+
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
 
         /// <summary>Identifies the admitted grammar production; a negative ID identifies an unclassified keyword.</summary>
         member this.NodeId = let (ValueData (id, _, _)) = this in id
@@ -263,9 +356,24 @@ module GrammarRuntime =
 
         text
 
+#if !FABLE_COMPILER
+    [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
     type private AdmissionAtom =
         | LiteralAtom of string
         | ProductionAtom of int
+
+#if !FABLE_COMPILER
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence ->
+                    NativeDisplay.union context depth precedence (box this) (fun n ->
+                        match this with
+                        | LiteralAtom text -> "LiteralAtom", [ Some (fun _ -> NativeDisplay.text context n text) ]
+                        | ProductionAtom id -> "ProductionAtom", [ Some (fun _ -> NativeDisplay.int32 context n id) ]))
+#endif
 
     let private language table nodeId =
         let rec collect seen atoms id =
