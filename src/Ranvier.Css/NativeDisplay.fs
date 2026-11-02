@@ -460,7 +460,7 @@ module internal NativeDisplay =
                 let entries = ResizeArray<Doc>()
                 use iterator = (values :> seq<_>).GetEnumerator()
 
-                while entries.Count < 100
+                while entries.Count < 9
                       && context.Remaining > 0
                       && iterator.MoveNext () do
                     let pair = iterator.Current

@@ -56,6 +56,29 @@ let main args =
         }
 
     emit "grammar-many-children" { node with Children = [| 0..150 |] }
+
+    emit
+        "grammar-newlines"
+        { node with
+            Text = "quote\"\nnewline\tend"
+            Separators = [| "\n"; "\"" |]
+        }
+
+    emit
+        "grammar-map-150"
+        (GrammarRuntime.Table.create
+            [|
+                for i in 0..149 ->
+                    { node with
+                        Id = i
+                        Text = "entry-" + string i
+                    }
+            |])
+
+    for count in [ 0; 8; 9; 10; 11 ] do
+        emit ("grammar-map-" + string count) (GrammarRuntime.Table.create [| for i in 1..count -> { node with Id = i } |])
+
+    emit "grammar-null-record" (Unchecked.defaultof<GrammarRuntime.Node>)
     emit "calculation" (CalculationRuntime.binary "+" literal literal)
     emit "argument" (CalculationArgument.WeightedValue (literal, Some 0.25))
     emit "argument-null" (CalculationArgument.Value Unchecked.defaultof<Calculation>)
@@ -71,6 +94,14 @@ let main args =
             Value = literal
             EasingBefore = Some easing
         }
+
+    emit "easing-150" (CalculationEasing.Linear [ for i in 0..149 -> float i, [ float i; float i + 0.5 ] ])
+
+    let deep =
+        [ 1..2000 ]
+        |> List.fold (fun value _ -> CalculationRuntime.negate value) literal
+
+    emit "calculation-depth-2000" deep
 
     let dimensions =
         [
