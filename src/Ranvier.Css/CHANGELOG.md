@@ -10,7 +10,7 @@ updaters:
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
 
-## 0.1.1 - 2026-11-02
+## 0.1.1-alpha.2 - 2026-11-02
 
 ### 🐞 Bug Fixes
 
