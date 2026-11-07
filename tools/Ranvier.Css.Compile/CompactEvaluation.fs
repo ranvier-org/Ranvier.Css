@@ -229,6 +229,18 @@ module internal CompactEvaluation =
             |> unbox<string>
             |> Generated.hexColor
             |> tokens
+        | "hashtoken" ->
+            single arguments
+            |> scalar
+            |> unbox<string>
+            |> Generated.hashToken
+            |> tokens
+        | "urltoken" ->
+            single arguments
+            |> scalar
+            |> unbox<string>
+            |> Generated.urlToken
+            |> tokens
         | "admit" ->
             let input = single arguments
 
@@ -258,7 +270,11 @@ module internal CompactEvaluation =
             let production = production ()
             let unitName = defaultArg factory.UnitName ""
             let data = GrammarRuntime.number registry.Table id magnitude unitName
-            Output.Value (data, Some (CalculationRuntime.literal production unitName magnitude))
+
+            if List.contains production [ "zero"; "decibel"; "semitones" ] then
+                Output.Value (data, None)
+            else
+                Output.Value (data, Some (CalculationRuntime.literal production unitName magnitude))
         | "string" ->
             single arguments
             |> scalar
@@ -312,9 +328,19 @@ module internal CompactEvaluation =
             Output.Value (GrammarRuntime.opaque registry.Table id (Declaration.value checkedValue), Some expression)
         | kind -> fail ("Unsupported factory kind '" + kind + "'.")
 
+    /// <summary>Maps a compiled generated owner name to its F# source path, removing the <c>Module</c> suffix the compiler adds to modules that share a type's name.</summary>
     let private normalizeOwner (registry: CompactMetadata.Registry) (owner: string) =
-        if owner = registry.Namespace + ".CssValue.VariableModule" then
-            registry.Namespace + ".CssValue.Variable"
+        if owner.StartsWith (registry.Namespace + ".CssValue.", StringComparison.Ordinal) then
+            owner.Split '.'
+            |> Array.map (fun segment ->
+                if
+                    segment.Length > "Module".Length
+                    && segment.EndsWith ("Module", StringComparison.Ordinal)
+                then
+                    segment.Substring (0, segment.Length - "Module".Length)
+                else
+                    segment)
+            |> String.concat "."
         else
             owner
 
@@ -720,6 +746,8 @@ module internal CompactEvaluation =
                             "integer"
                             "string"
                             "hexcolor"
+                            "hashtoken"
+                            "urltoken"
                             "identifier"
                             "customidentifier"
                             "dashedidentifier"

@@ -223,6 +223,17 @@ let main _ =
     rejects "negative xywh width" (fun () -> Css.xywh (CssValue.px 0., CssValue.px 0., CssValue.px -1., CssValue.px 1.) |> ignore)
     rejects "cubic-bezier x range" (fun () -> Css.cubicBezier (CssValue.number 1.5, CssValue.number 0., CssValue.number 0., CssValue.number 1.) |> ignore)
     rejects "inset offset count" (fun () -> CssValue.Values.BasicShape.inset [ CssValue.px 1.; CssValue.px 1.; CssValue.px 1.; CssValue.px 1.; CssValue.px 1. ] None |> ignore)
+    contains "url token sink" "list-style-image: url(dot.png);" (css (Css.listStyleImage (CssValue.UrlToken.create "dot.png")))
+    contains "id sink" "nav-down: #next;" (css (Css.navDown (CssValue.Id.create "next")))
+    equal "hash token" "#main" (CssValue.render (CssValue.HashToken.create "main"))
+    contains "timeline range sink" "animation-range-start: entry;" (css (Css.animationRangeStart (CssValue.TimelineRangeName.create "entry")))
+    equal "zero" "hue-rotate(0)" (CssValue.render (Css.hueRotate CssValue.Zero.value))
+    contains "decibel sink" "voice-volume: soft -6dB;" (css (Css.voiceVolume (CssValue.VoiceVolume.Options.create (Some CssValue.VoiceVolume.soft) (Some (CssValue.VoiceVolume.Decibel.Value.create -6.)))))
+    contains "semitones sink" "voice-pitch: high -1.5st;" (css (Css.voicePitch (CssValue.VoicePitch.Options.create (Some CssValue.VoicePitch.high) (Some (CssValue.VoicePitch.Semitones.Value.create -1.5)))))
+    rejects "hash token name" (fun () -> CssValue.HashToken.create "a b" |> ignore)
+    rejects "empty url token" (fun () -> CssValue.UrlToken.create "" |> ignore)
+    rejects "timeline range identifier" (fun () -> CssValue.TimelineRangeName.create "1x" |> ignore)
+    rejects "nonfinite decibel" (fun () -> CssValue.VoiceVolume.Decibel.Value.create nan |> ignore)
     printfn "Compact public API runtime checks passed."
     0
 `;
@@ -256,6 +267,9 @@ const rejections = [
   ['SinglePercentageRadius', 'Css.circle (CssValue.percent 50.)', ['FS0041', 'FS0001', 'FS0193']],
   ['InsetAliasIsProperty', 'Css.clipPath (Css.inset (CssValue.px 1.))', ['FS0041', 'FS0001', 'FS0193']],
   ['ShapeAsEasing', 'Css.transitionTimingFunction (Css.ellipse ())', ['FS0041', 'FS0001', 'FS0193']],
+  ['TextDecibel', 'CssValue.VoiceVolume.Decibel.create "6dB"', ['FS0001']],
+  ['ZeroAsImage', 'Css.listStyleImage CssValue.Zero.value', ['FS0041', 'FS0001', 'FS0193']],
+  ['HashTokenAsColor', 'Css.color (CssValue.HashToken.create "abc")', ['FS0041', 'FS0001', 'FS0193']],
 ].map(([name, expression, code]) => ({ name, expression, code }));
 const negative = path.join(output, 'negative');
 await fs.mkdir(negative);

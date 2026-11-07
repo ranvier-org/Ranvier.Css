@@ -33,6 +33,9 @@ module internal CompactGeneration =
     let private fallbackWideKeywords =
         set [ "initial"; "inherit"; "unset"; "revert"; "revert-layer"; "revert-rule" ]
 
+    /// <summary>Prose-defined CSS Speech dimensions and their unit suffixes.</summary>
+    let private speechDimensions = Map.ofList [ "decibel", "dB"; "semitones", "st" ]
+
     let private runtime = "global.Ranvier.Css.Internal.GrammarRuntime"
 
     type private ModuleTree =
@@ -226,6 +229,7 @@ module internal CompactGeneration =
             "/// <summary>" + text + "</summary>"
 
         let emitted = HashSet<string list * string>()
+        let dimensionFactories = ResizeArray<PrimitiveFactory>()
         let aliases = HashSet<string list>()
         let keywordAliases = ResizeArray<string list * string * int>()
         let booleanAliases = ResizeArray<string list * string * int>()
@@ -381,6 +385,46 @@ module internal CompactGeneration =
             match node.Kind with
             | 0
             | 12 ->
+                let production = node.Text.Trim('<', '>').ToLowerInvariant()
+
+                match Map.tryFind production speechDimensions with
+                | Some unitName when
+                    node.Kind = 0
+                    && emitted.Add (owner.Path, "create")
+                    ->
+                    append
+                        owner.Path
+                        (summary (
+                            "Constructs a finite "
+                            + production
+                            + " dimension in "
+                            + unitName
+                            + "."
+                        ))
+
+                    append
+                        owner.Path
+                        ("let create (value: float) : Value = "
+                         + wrap
+                             node.Id
+                             (runtime
+                              + ".number CssGrammar.table "
+                              + string node.Id
+                              + " value "
+                              + quote unitName))
+
+                    dimensionFactories.Add
+                        {
+                            Owner = "CssValue" :: owner.Path
+                            MemberName = "create"
+                            NodeId = node.Id
+                            Kind = "number"
+                            Production = production
+                            UnitName = unitName
+                            ArgumentType = "float"
+                        }
+                | _ -> ()
+
                 emit
                     owner
                     "unsafeFromTokens"
@@ -1146,6 +1190,7 @@ module internal CompactGeneration =
                     factories =
                         (primitives.Factories
                          @ List.ofSeq functionFactories
+                         @ List.ofSeq dimensionFactories
                          |> List.map (fun factory ->
                              {|
                                  owner =

@@ -334,6 +334,74 @@ let private compactCases =
                     "red"
                     "The property and palette share runtime admission."
 
+            testCase "prose primitives without grammar generate validated factories"
+            <| fun _ ->
+                let json =
+                    """{"properties":[
+                        {"name":"all","href":"https://example.test/all","syntax":"initial | inherit | unset | revert | revert-layer | revert-rule"},
+                        {"name":"marker","href":"https://example.test/marker","syntax":"<zero> | <url-token> | <hash-token> | <timeline-range-name> | <id> | <target-name> | <url-modifier>"},
+                        {"name":"voice-volume","href":"https://example.test/voice-volume","syntax":"silent | <decibel>"},
+                        {"name":"voice-pitch","href":"https://example.test/voice-pitch","syntax":"medium | <semitones>"}
+                    ],"types":[
+                        {"name":"zero","href":"https://example.test/zero"},
+                        {"name":"url-token","href":"https://example.test/url-token"},
+                        {"name":"hash-token","href":"https://example.test/hash-token"},
+                        {"name":"timeline-range-name","href":"https://example.test/timeline-range-name"},
+                        {"name":"id","href":"https://example.test/id"},
+                        {"name":"target-name","href":"https://example.test/target-name"},
+                        {"name":"url-modifier","href":"https://example.test/url-modifier"},
+                        {"name":"decibel","href":"https://example.test/decibel","for":["voice-volume"]},
+                        {"name":"semitones","href":"https://example.test/semitones","for":["voice-pitch"]}
+                    ],"functions":[],"selectors":[],"atrules":[]}"""
+
+                let input =
+                    Webref.consume "prose-primitives" (Encoding.UTF8.GetBytes json)
+                    |> Result.toOption
+                    |> Option.defaultWith (fun () -> failtest "The prose primitive fixture must be valid.")
+
+                let output = compactOutput input
+                use manifest = JsonDocument.Parse output.Manifest
+
+                let factories =
+                    manifest.RootElement.GetProperty("factories").EnumerateArray()
+                    |> Seq.map (fun factory ->
+                        (factory.GetProperty("owner").GetString(), factory.GetProperty("memberName").GetString()),
+                        (factory.GetProperty("kind").GetString(),
+                         factory.GetProperty("production").GetString(),
+                         factory.GetProperty("unitName").GetString(),
+                         factory.GetProperty("argumentType").GetString()))
+                    |> Map.ofSeq
+
+                for owner, memberName, expected in
+                    [
+                        "Zero", "value", ("number", "zero", "", "none")
+                        "UrlToken", "create", ("urlToken", "url-token", "", "string")
+                        "HashToken", "create", ("hashToken", "hash-token", "", "string")
+                        "Id", "create", ("hashToken", "id", "", "string")
+                        "TargetName", "create", ("string", "target-name", "", "string")
+                        "TimelineRangeName", "create", ("identifier", "timeline-range-name", "", "string")
+                        "UrlModifier", "create", ("identifier", "url-modifier", "", "string")
+                        "VoiceVolume.Decibel", "create", ("number", "decibel", "dB", "float")
+                        "VoicePitch.Semitones", "create", ("number", "semitones", "st", "float")
+                    ] do
+                    Expect.equal
+                        (Map.tryFind ("Example.Compact.CssValue." + owner, memberName) factories)
+                        (Some expected)
+                        "Each prose primitive has a validated owner factory with extraction metadata."
+
+                for memberName in
+                    [
+                        "urlToken"
+                        "hashToken"
+                        "id"
+                        "targetName"
+                        "timelineRangeName"
+                        "urlModifier"
+                    ] do
+                    Expect.isNone (Map.tryFind ("Example.Compact.Css", memberName) factories) "Token-shaped primitives stay on their owner modules."
+
+                Expect.stringContains output.Source "Generated.urlToken value" "URL tokens use the runtime validator."
+                Expect.stringContains output.Source "Generated.hashToken value" "Hash tokens use the runtime validator."
             testCase "color functions admitted by color generate flattened constructors and Css aliases"
             <| fun _ ->
                 let output = compactOutput (colorCatalogue "light-dark(<color>, <color>)")

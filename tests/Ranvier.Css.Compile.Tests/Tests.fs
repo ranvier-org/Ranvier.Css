@@ -1489,6 +1489,104 @@ do failwith "Shape initializers must never execute during extraction"
                     match Extractor.extract ExtractionOptions.defaults project with
                     | Ok _ -> failtest "A cubic-bezier x outside [0,1] must fail extraction."
                     | Error errors -> Expect.stringContains errors.Head.Message "range" "Runtime easing guards run during extraction."
+            testCase "validated prose primitive factories match runtime output in every asset mode"
+            <| fun _ ->
+                temporary
+                    """module Fixture
+open Ranvier.Css
+open Ranvier.Css.View
+let example = utility {
+    Css.listStyleImage (CssValue.UrlToken.create "a b.png")
+    Css.navDown (CssValue.Id.create "next")
+    Css.animationRangeStart (CssValue.TimelineRangeName.create "entry")
+    Css.filter (Css.hueRotate CssValue.Zero.value)
+    Css.voiceVolume (CssValue.VoiceVolume.Options.create (Some CssValue.VoiceVolume.soft) (Some (CssValue.VoiceVolume.Decibel.Value.create -6.)))
+    Css.voicePitch (CssValue.VoicePitch.Options.create None (Some (CssValue.VoicePitch.Semitones.Value.create 2.)))
+}
+let view () = styles { example }
+do failwith "Primitive initializers must never execute during extraction"
+"""
+                <| fun project ->
+                    let declarations =
+                        [
+                            Ranvier.Css.Css.listStyleImage (Ranvier.Css.CssValue.UrlToken.create "a b.png")
+                            Ranvier.Css.Css.navDown (Ranvier.Css.CssValue.Id.create "next")
+                            Ranvier.Css.Css.animationRangeStart (Ranvier.Css.CssValue.TimelineRangeName.create "entry")
+                            Ranvier.Css.Css.filter (Ranvier.Css.Css.hueRotate Ranvier.Css.CssValue.Zero.value)
+                            Ranvier.Css.Css.voiceVolume (
+                                Ranvier.Css.CssValue.VoiceVolume.Options.create
+                                    (Some Ranvier.Css.CssValue.VoiceVolume.soft)
+                                    (Some (Ranvier.Css.CssValue.VoiceVolume.Decibel.Value.create -6.))
+                            )
+                            Ranvier.Css.Css.voicePitch (
+                                Ranvier.Css.CssValue.VoicePitch.Options.create None (Some (Ranvier.Css.CssValue.VoicePitch.Semitones.Value.create 2.))
+                            )
+                        ]
+
+                    Expect.equal
+                        (declarations
+                         |> List.map Ranvier.Css.Declaration.render)
+                        [
+                            "list-style-image: url(a\\ b.png);"
+                            "nav-down: #next;"
+                            "animation-range-start: entry;"
+                            "filter: hue-rotate(0);"
+                            "voice-volume: soft -6dB;"
+                            "voice-pitch: 2st;"
+                        ]
+                        "Runtime factories serialize the validated prose primitives."
+
+                    let expected =
+                        Ranvier.Css.Style.create (
+                            declarations
+                            |> List.map (fun declaration -> Ranvier.Css.Style.declarations [ declaration ])
+                        )
+
+                    let expectedModule =
+                        {
+                            Name =
+                                "Fixture-"
+                                + Ranvier.Css.Identity.hash "Fixture/Fixture.fs"
+                            Dependencies = []
+                            Rules = []
+                            Styles = [ expected.Definition ]
+                        }
+
+                    for mode in
+                        [
+                            Options.defaults.Mode
+                            OutputMode.SingleFile "app.css"
+                            OutputMode.CssModules
+                        ] do
+                        let assets = { Options.defaults with Mode = mode }
+
+                        let result =
+                            extract
+                                { ExtractionOptions.defaults with
+                                    Assets = assets
+                                }
+                                project
+
+                        match Compiler.compile assets [ expectedModule ] with
+                        | Ok runtime -> Expect.equal result runtime "Extracted primitive bytes match the runtime factories."
+                        | Error errors -> failtest (String.concat "\n" errors)
+            testCase "prose primitive validation remains enforced during extraction"
+            <| fun _ ->
+                for expression, message in
+                    [
+                        "Css.navDown (CssValue.Id.create \"a b\")", "hash name"
+                        "Css.listStyleImage (CssValue.UrlToken.create \"\")", "nonempty URL"
+                        "Css.animationRangeStart (CssValue.TimelineRangeName.create \"1x\")", "identifier"
+                    ] do
+                    temporary (
+                        "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet invalid = utility { "
+                        + expression
+                        + " }\nlet view () = styles { invalid }\n"
+                    )
+                    <| fun project ->
+                        match Extractor.extract ExtractionOptions.defaults project with
+                        | Ok _ -> failtestf "%s must fail extraction." expression
+                        | Error errors -> Expect.stringContains errors.Head.Message message "Runtime primitive validators run during extraction."
             testCase "transform grammar guards remain enforced during extraction"
             <| fun _ ->
                 temporary

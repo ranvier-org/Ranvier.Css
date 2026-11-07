@@ -162,6 +162,12 @@ let run () =
             CssValue.render (CssValue.Values.TransformFunction.translate (Css.px 10.) None), "translate(10px)"
             CssValue.render (Css.polygon [ Css.percent 0., Css.percent 0.; Css.percent 100., Css.percent 0. ]), "polygon(0% 0%, 100% 0%)"
             CssValue.render (Css.cubicBezier (Css.number 0.25, Css.number 0.1, Css.number 0.25, Css.number 1.)), "cubic-bezier(0.25, 0.1, 0.25, 1)"
+            Css.listStyleImage (CssValue.UrlToken.create "a b.png")
+            |> Declaration.render,
+            "list-style-image: url(a\\ b.png);"
+            CssValue.render (CssValue.HashToken.create "main"), "#main"
+            CssValue.render (Css.hueRotate CssValue.Zero.value), "hue-rotate(0)"
+            CssValue.render (CssValue.VoiceVolume.Decibel.Value.create -6.), "-6dB"
         ] do
         if actual <> expected then
             failwithf "Portable function construction changed: %s" actual

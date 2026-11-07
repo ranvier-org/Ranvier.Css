@@ -486,6 +486,12 @@ module internal CompactPrimitiveGeneration =
                     | "ident-token" -> Some ("ident", "identifier", generated + "identifier false false value")
                     | "custom-ident" -> Some ("customIdent", "customIdentifier", generated + "identifier false true value")
                     | "hex-color" -> Some ("hex", "hexColor", generated + "hexColor value")
+                    | "hash-token"
+                    | "id" -> Some ("", "hashToken", generated + "hashToken value")
+                    | "url-token" -> Some ("", "urlToken", generated + "urlToken value")
+                    | "target-name" -> Some ("", "string", generated + "stringValue value")
+                    | "url-modifier"
+                    | "timeline-range-name" -> Some ("", "identifier", generated + "identifier false false value")
                     | "dashed-ident"
                     | "custom-property-name" -> Some ("dashedIdent", "dashedIdentifier", generated + "identifier true false value")
                     | _ -> None
@@ -521,8 +527,34 @@ module internal CompactPrimitiveGeneration =
 
                     factories.Add factory
 
-                    if not (production.EndsWith ("-token", StringComparison.Ordinal)) then
+                    if
+                        aliasName <> ""
+                        && not (production.EndsWith ("-token", StringComparison.Ordinal))
+                    then
                         alias aliasName owner "create" factory
+                | None when production = "zero" ->
+                    summary path "The unitless zero literal admitted by the CSS zero production."
+
+                    add
+                        path
+                        ("let value = "
+                         + storageClasses[id]
+                         + "("
+                         + runtime
+                         + ".number CssGrammar.table "
+                         + string id
+                         + " 0. \"\")")
+
+                    factories.Add
+                        {
+                            Owner = "CssValue" :: path
+                            MemberName = "value"
+                            NodeId = id
+                            Kind = "number"
+                            Production = production
+                            UnitName = ""
+                            ArgumentType = "none"
+                        }
                 | None -> ()
 
         {

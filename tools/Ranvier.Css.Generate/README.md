@@ -126,6 +126,19 @@ Their structural constructors under `CssValue.Functions` and `CssValue.Values` r
 
 `<hex-color>` is prose-defined, so it is handled like the other built-in prose primitives. `CssValue.HexColor.create`, `CssValue.hex`, `Css.hex` and `CssValue.Color.hex` validate 3, 4, 6 or 8 hexadecimal digits, with an optional leading `#`, and preserve digit case. Factories use kind `hexColor`. The CSS importer converts hash tokens through this factory.
 
+The other prose primitives that property grammars reach have validated factories on their owner modules:
+
+| Primitive | Factory | Kind | Example |
+|---|---|---|---|
+| `<hash-token>`, `<id>` | `CssValue.HashToken.create`, `CssValue.Id.create` | `hashToken` | `CssValue.Id.create "next"` gives `#next` |
+| `<url-token>` | `CssValue.UrlToken.create` | `urlToken` | `CssValue.UrlToken.create "a b.png"` gives `url(a\ b.png)` |
+| `<zero>` | `CssValue.Zero.value` | `number` | `0` |
+| `<timeline-range-name>`, `<url-modifier>` | `create` | `identifier` | `CssValue.TimelineRangeName.create "entry"` |
+| `<target-name>` | `CssValue.TargetName.create` | `string` | `"frame"` |
+| `<decibel>`, `<semitones>` | `create (value: float)` on each scoped owner, such as `CssValue.VoiceVolume.Decibel.Value` | `number` (`dB`, `st`) | `-6dB` |
+
+Hash names are an unescaped run of identifier code points, with an optional leading `#`. URL tokens escape parentheses, quotes, backslashes and spaces, and hex-escape control characters; empty URLs and U+0000 are rejected. Token-shaped primitives have no `Css` alias. The CSS importer converts non-hex hash tokens and `url()` tokens through these factories. `<number-token>`, `<dimension>` and `<declaration-value>` keep only `unsafeFromTokens`.
+
 Grammar sequences serialize commas canonically. A comma takes no preceding space and one following space. Commas beside omitted optional components are dropped, as CSS Values 4 requires. So `color-mix()` without an interpolation method and legacy `rgb()` without alpha never emit dangling commas.
 
 Each meaningful owner exports a `Value` interface for ordinary F# annotations. A conditional needs a common category on its first branch; later compatible branches coerce implicitly:

@@ -8,7 +8,9 @@ Update: the planner is now `CompactFunctionGeneration`, parameterised by `Functi
 location, noun, naming policy), and `<filter-function>` is enabled with Filter Effects names
 (`radius`, `amount`). `<transform-function>` follows with CSS Transforms names (`a`–`f`, `a1`–`d4`,
 `x`/`y`/`z`, `factor`). `<basic-shape>` and `<easing-function>` follow with CSS Shapes and CSS Easing
-names. Recommendations 1 to 3 are done, except the `<image>` functions; the survey tables below predate them.
+names. Recommendations 1 to 3 are done, except the `<image>` functions. Recommendation 5 is done: `<hash-token>`, `<id>`,
+`<url-token>`, `<zero>`, `<timeline-range-name>`, `<url-modifier>`, `<target-name>`, `<decibel>` and `<semitones>` have
+validated factories. The survey tables below predate these changes.
 
 ## The `<color>` fix
 

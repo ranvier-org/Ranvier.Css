@@ -50911,6 +50911,15 @@
     },
     {
       "argumentType": "string",
+      "kind": "hashToken",
+      "memberName": "create",
+      "nodeId": 6453,
+      "owner": "Ranvier.Css.CssValue.HashToken",
+      "production": "hash-token",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
       "kind": "hexColor",
       "memberName": "create",
       "nodeId": 6457,
@@ -50934,6 +50943,15 @@
       "nodeId": 6457,
       "owner": "Ranvier.Css.Css",
       "production": "hex-color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "hashToken",
+      "memberName": "create",
+      "nodeId": 6544,
+      "owner": "Ranvier.Css.CssValue.Id",
+      "production": "id",
       "unitName": ""
     },
     {
@@ -52728,6 +52746,15 @@
       "unitName": ""
     },
     {
+      "argumentType": "string",
+      "kind": "string",
+      "memberName": "create",
+      "nodeId": 10115,
+      "owner": "Ranvier.Css.CssValue.TargetName",
+      "production": "target-name",
+      "unitName": ""
+    },
+    {
       "argumentType": "float",
       "kind": "number",
       "memberName": "s",
@@ -52842,6 +52869,42 @@
       "nodeId": 10175,
       "owner": "Ranvier.Css.CssValue.TimePercentage",
       "production": "time-percentage",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "identifier",
+      "memberName": "create",
+      "nodeId": 10179,
+      "owner": "Ranvier.Css.CssValue.TimelineRangeName",
+      "production": "timeline-range-name",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "identifier",
+      "memberName": "create",
+      "nodeId": 10364,
+      "owner": "Ranvier.Css.CssValue.UrlModifier",
+      "production": "url-modifier",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "urlToken",
+      "memberName": "create",
+      "nodeId": 10366,
+      "owner": "Ranvier.Css.CssValue.UrlToken",
+      "production": "url-token",
+      "unitName": ""
+    },
+    {
+      "argumentType": "none",
+      "kind": "number",
+      "memberName": "value",
+      "nodeId": 10560,
+      "owner": "Ranvier.Css.CssValue.Zero",
+      "production": "zero",
       "unitName": ""
     },
     {
@@ -53851,6 +53914,42 @@
       "owner": "Ranvier.Css.Css",
       "production": "steps",
       "unitName": ""
+    },
+    {
+      "argumentType": "float",
+      "kind": "number",
+      "memberName": "create",
+      "nodeId": 5716,
+      "owner": "Ranvier.Css.CssValue.VoiceVolume.Decibel",
+      "production": "decibel",
+      "unitName": "dB"
+    },
+    {
+      "argumentType": "float",
+      "kind": "number",
+      "memberName": "create",
+      "nodeId": 5717,
+      "owner": "Ranvier.Css.CssValue.VoiceVolume.Decibel.Value",
+      "production": "decibel",
+      "unitName": "dB"
+    },
+    {
+      "argumentType": "float",
+      "kind": "number",
+      "memberName": "create",
+      "nodeId": 9410,
+      "owner": "Ranvier.Css.CssValue.VoicePitch.Semitones",
+      "production": "semitones",
+      "unitName": "st"
+    },
+    {
+      "argumentType": "float",
+      "kind": "number",
+      "memberName": "create",
+      "nodeId": 9411,
+      "owner": "Ranvier.Css.CssValue.VoicePitch.Semitones.Value",
+      "production": "semitones",
+      "unitName": "st"
     },
     {
       "argumentType": "none",
