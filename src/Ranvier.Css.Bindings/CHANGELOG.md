@@ -8,7 +8,7 @@ updaters:
 
 # Changelog
 
-## 0.1.1 - 2026-11-07
+## 0.1.1-alpha.2 - 2026-11-07
 
 ### 🚀 Features
 
