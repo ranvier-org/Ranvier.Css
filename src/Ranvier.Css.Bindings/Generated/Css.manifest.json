@@ -53018,6 +53018,96 @@
     {
       "argumentType": "parameters",
       "kind": "assemble",
+      "memberName": "blur",
+      "nodeId": 10615,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "blur",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "brightness",
+      "nodeId": 10618,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "brightness",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "contrast",
+      "nodeId": 10763,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "contrast",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "dropShadow",
+      "nodeId": 10825,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "drop-shadow",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "grayscale",
+      "nodeId": 10876,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "grayscale",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hueRotate",
+      "nodeId": 10893,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "hue-rotate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "invert",
+      "nodeId": 11050,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "invert",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "opacity",
+      "nodeId": 11335,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "opacity",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "saturate",
+      "nodeId": 11529,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "saturate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "sepia",
+      "nodeId": 11571,
+      "owner": "Ranvier.Css.CssValue.Values.FilterFunction",
+      "production": "sepia",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
       "memberName": "alpha",
       "nodeId": 10572,
       "owner": "Ranvier.Css.Css",
@@ -53166,6 +53256,87 @@
       "nodeId": 7644,
       "owner": "Ranvier.Css.Css",
       "production": "rgba",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "blur",
+      "nodeId": 10615,
+      "owner": "Ranvier.Css.Css",
+      "production": "blur",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "brightness",
+      "nodeId": 10618,
+      "owner": "Ranvier.Css.Css",
+      "production": "brightness",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "contrast",
+      "nodeId": 10763,
+      "owner": "Ranvier.Css.Css",
+      "production": "contrast",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "dropShadow",
+      "nodeId": 10825,
+      "owner": "Ranvier.Css.Css",
+      "production": "drop-shadow",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "grayscale",
+      "nodeId": 10876,
+      "owner": "Ranvier.Css.Css",
+      "production": "grayscale",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hueRotate",
+      "nodeId": 10893,
+      "owner": "Ranvier.Css.Css",
+      "production": "hue-rotate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "invert",
+      "nodeId": 11050,
+      "owner": "Ranvier.Css.Css",
+      "production": "invert",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "saturate",
+      "nodeId": 11529,
+      "owner": "Ranvier.Css.Css",
+      "production": "saturate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "sepia",
+      "nodeId": 11571,
+      "owner": "Ranvier.Css.Css",
+      "production": "sepia",
       "unitName": ""
     },
     {
@@ -134316,6 +134487,14 @@
       "memberName": "color",
       "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Color constructor.",
       "nodeId": 10683,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "opacity",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.FilterFunction constructor.",
+      "nodeId": 11335,
       "path": [
         "Css"
       ]

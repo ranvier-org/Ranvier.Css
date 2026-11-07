@@ -189,6 +189,15 @@ let main _ =
     for hex in ["#12345"; "#ggg"; ""] do rejects "hex color" (fun () -> Css.hex hex |> ignore)
     rejects "color-mix percentage range" (fun () -> Css.colorMix [ CssValue.Color.red, Some (CssValue.percent 101.) ] |> ignore)
     rejects "empty color-mix" (fun () -> Css.colorMix [] |> ignore)
+    contains "blur sink" "filter: blur(4px);" (css (Css.filter (Css.blur (CssValue.px 4.))))
+    contains "backdrop sink" "backdrop-filter: grayscale(50%);" (css (Css.backdropFilter (Css.grayscale (CssValue.percent 50.))))
+    equal "empty blur" "blur()" (CssValue.render (Css.blur ()))
+    equal "brightness" "brightness(150%)" (CssValue.render (Css.brightness (CssValue.percent 150.)))
+    equal "contrast" "contrast(1.2)" (CssValue.render (Css.contrast (CssValue.number 1.2)))
+    equal "hue-rotate" "hue-rotate(90deg)" (CssValue.render (Css.hueRotate (CssValue.deg 90.)))
+    equal "drop-shadow" "drop-shadow(black 2px 4px 6px)" (CssValue.render (Css.dropShadow ([ CssValue.px 2.; CssValue.px 4.; CssValue.px 6. ], color = CssValue.Color.black)))
+    equal "curried opacity" "opacity(40%)" (CssValue.render (CssValue.Values.FilterFunction.opacity (Some (CssValue.percent 40.))))
+    rejects "drop-shadow length count" (fun () -> Css.dropShadow [ CssValue.px 1. ] |> ignore)
     printfn "Compact public API runtime checks passed."
     0
 `;
@@ -213,6 +222,9 @@ const rejections = [
   ['ColorFunctionAsWidth', 'Css.width (Css.rgb (CssValue.number 1., CssValue.number 2., CssValue.number 3.))', ['FS0041', 'FS0001', 'FS0193']],
   ['NumericHex', 'Css.hex 0xff0000', ['FS0041', 'FS0001']],
   ['ColorMixWithoutList', 'Css.colorMix (CssValue.Color.red, None)', ['FS0041', 'FS0001', 'FS0193']],
+  ['AngleBlur', 'Css.blur (CssValue.deg 1.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['FilterAsColor', 'Css.color (Css.blur (CssValue.px 1.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['OpacityAliasIsProperty', 'Css.filter (Css.opacity (CssValue.percent 1.))', ['FS0041', 'FS0001', 'FS0193']],
 ].map(([name, expression, code]) => ({ name, expression, code }));
 const negative = path.join(output, 'negative');
 await fs.mkdir(negative);
