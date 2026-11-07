@@ -158,8 +158,43 @@ module internal CompactFunctionGeneration =
                     ]
         }
 
+    /// <summary>Basic shape constructors on <c>CssValue.Values.BasicShape</c>.</summary>
+    /// <remarks>
+    /// Names follow CSS Shapes 1 and 2: box edges for <c>rect()</c>, origin and size for <c>xywh()</c>,
+    /// <c>points</c> for polygon vertices and <c>data</c> for SVG path strings.
+    /// </remarks>
+    let basicShape =
+        {
+            TypeName = "basic-shape"
+            Location = [ "Values"; "BasicShape" ]
+            Noun = "shape"
+            NamingPolicy =
+                Map.ofList
+                    [
+                        "circle", [ "radius"; "at" ]
+                        "ellipse", [ "radii"; "at" ]
+                        "inset", [ "offsets"; "round" ]
+                        "path", [ "data"; "fillRule" ]
+                        "polygon", [ "points"; "fillRule"; "round" ]
+                        "rect", [ "top"; "right"; "bottom"; "left"; "round" ]
+                        "shape", [ "from"; "commands"; "fillRule" ]
+                        "xywh", [ "x"; "y"; "width"; "height"; "round" ]
+                    ]
+        }
+
+    /// <summary>Easing function constructors on <c>CssValue.Values.EasingFunction</c>.</summary>
+    /// <remarks>Names follow CSS Easing 1: control points <c>x1</c>, <c>y1</c>, <c>x2</c>, <c>y2</c> and step counts.</remarks>
+    let easingFunction =
+        {
+            TypeName = "easing-function"
+            Location = [ "Values"; "EasingFunction" ]
+            Noun = "easing"
+            NamingPolicy = Map.ofList [ "cubic-bezier", [ "x1"; "y1"; "x2"; "y2" ]; "steps", [ "count"; "position" ] ]
+        }
+
     /// <summary>Families in emission order; an earlier family claims a contested <c>Css</c> alias.</summary>
-    let families = [ color; filterFunction; transformFunction ]
+    let families =
+        [ color; filterFunction; transformFunction; basicShape; easingFunction ]
 
     let rec private nodeName (graph: GrammarGraph) id =
         let node = graph.NodesById[id]

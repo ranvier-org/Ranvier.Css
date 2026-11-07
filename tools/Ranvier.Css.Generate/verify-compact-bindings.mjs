@@ -210,6 +210,19 @@ let main _ =
     equal "perspective" "perspective(500px)" (CssValue.render (CssValue.Values.TransformFunction.perspective (CssValue.px 500.)))
     rejects "scale factor count" (fun () -> CssValue.Values.TransformFunction.scale [ CssValue.number 1.; CssValue.number 2.; CssValue.number 3. ] |> ignore)
     rejects "negative perspective" (fun () -> CssValue.Values.TransformFunction.perspective (CssValue.px -1.) |> ignore)
+    contains "circle sink" "clip-path: circle(50px);" (css (Css.clipPath (Css.circle (CssValue.px 50.))))
+    equal "circle at" "circle(40px at center)" (CssValue.render (Css.circle (CssValue.px 40., at = CssValue.ObjectPosition.center)))
+    equal "empty ellipse" "ellipse()" (CssValue.render (Css.ellipse ()))
+    equal "inset" "inset(10px 5%)" (CssValue.render (CssValue.Values.BasicShape.inset [ CssValue.px 10.; CssValue.percent 5. ] None))
+    equal "polygon" "polygon(0% 0%, 100% 0%, 50% 100%)" (CssValue.render (Css.polygon [ CssValue.percent 0., CssValue.percent 0.; CssValue.percent 100., CssValue.percent 0.; CssValue.percent 50., CssValue.percent 100. ]))
+    equal "path" "path(\"M0 0 L10 10\")" (CssValue.render (Css.path (CssValue.string "M0 0 L10 10")))
+    equal "rect" "rect(1px 2px 3px 4px)" (CssValue.render (Css.rect (CssValue.px 1., CssValue.px 2., CssValue.px 3., CssValue.px 4.)))
+    equal "xywh" "xywh(0px 0px 50% 50% round 4px)" (CssValue.render (Css.xywh (CssValue.px 0., CssValue.px 0., CssValue.percent 50., CssValue.percent 50., round = CssValue.px 4.)))
+    contains "cubic-bezier sink" "transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);" (css (Css.transitionTimingFunction (Css.cubicBezier (CssValue.number 0.25, CssValue.number 0.1, CssValue.number 0.25, CssValue.number 1.))))
+    equal "steps" "steps(4)" (CssValue.render (Css.steps (CssValue.integer 4)))
+    rejects "negative xywh width" (fun () -> Css.xywh (CssValue.px 0., CssValue.px 0., CssValue.px -1., CssValue.px 1.) |> ignore)
+    rejects "cubic-bezier x range" (fun () -> Css.cubicBezier (CssValue.number 1.5, CssValue.number 0., CssValue.number 0., CssValue.number 1.) |> ignore)
+    rejects "inset offset count" (fun () -> CssValue.Values.BasicShape.inset [ CssValue.px 1.; CssValue.px 1.; CssValue.px 1.; CssValue.px 1.; CssValue.px 1. ] None |> ignore)
     printfn "Compact public API runtime checks passed."
     0
 `;
@@ -240,6 +253,9 @@ const rejections = [
   ['RotateAliasIsProperty', 'Css.transform (Css.rotate (CssValue.deg 1.))', ['FS0041', 'FS0001', 'FS0193']],
   ['LengthMatrixEntry', 'Css.matrix (CssValue.px 1., CssValue.number 0., CssValue.number 0., CssValue.number 1., CssValue.number 0., CssValue.number 0.)', ['FS0041', 'FS0001', 'FS0193']],
   ['TransformAsFilter', 'Css.filter (Css.skewX (CssValue.deg 1.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['SinglePercentageRadius', 'Css.circle (CssValue.percent 50.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['InsetAliasIsProperty', 'Css.clipPath (Css.inset (CssValue.px 1.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['ShapeAsEasing', 'Css.transitionTimingFunction (Css.ellipse ())', ['FS0041', 'FS0001', 'FS0193']],
 ].map(([name, expression, code]) => ({ name, expression, code }));
 const negative = path.join(output, 'negative');
 await fs.mkdir(negative);
