@@ -1380,6 +1380,115 @@ do failwith "Transform initializers must never execute during extraction"
                         match Compiler.compile assets [ expectedModule ] with
                         | Ok runtime -> Expect.equal result runtime "Extracted transform bytes and identities match the runtime constructors."
                         | Error errors -> failtest (String.concat "\n" errors)
+            testCase "flattened shape and easing constructors match runtime output in every asset mode"
+            <| fun _ ->
+                temporary
+                    """module Fixture
+open Ranvier.Css
+open Ranvier.Css.View
+let example = utility {
+    Css.clipPath (Css.circle (Css.px 40., at = CssValue.ObjectPosition.center))
+    Css.clipPath (Css.polygon [ Css.percent 0., Css.percent 0.; Css.percent 100., Css.percent 0.; Css.percent 50., Css.percent 100. ])
+    Css.clipPath (CssValue.Values.BasicShape.inset [ Css.px 10.; Css.percent 5. ] None)
+    Css.clipPath (Css.xywh (Css.px 0., Css.px 0., Css.percent 50., Css.percent 50., round = Css.px 4.))
+    Css.transitionTimingFunction (Css.cubicBezier (Css.number 0.25, Css.number 0.1, Css.number 0.25, Css.number 1.))
+    Css.animationTimingFunction (Css.steps (Css.integer 4))
+}
+let view () = styles { example }
+do failwith "Shape initializers must never execute during extraction"
+"""
+                <| fun project ->
+                    let declarations =
+                        [
+                            Ranvier.Css.Css.clipPath (
+                                Ranvier.Css.Css.circle (Ranvier.Css.Css.px 40., at = Ranvier.Css.CssValue.ObjectPosition.center)
+                            )
+                            Ranvier.Css.Css.clipPath (
+                                Ranvier.Css.Css.polygon
+                                    [
+                                        Ranvier.Css.Css.percent 0., Ranvier.Css.Css.percent 0.
+                                        Ranvier.Css.Css.percent 100., Ranvier.Css.Css.percent 0.
+                                        Ranvier.Css.Css.percent 50., Ranvier.Css.Css.percent 100.
+                                    ]
+                            )
+                            Ranvier.Css.Css.clipPath (
+                                Ranvier.Css.CssValue.Values.BasicShape.inset [ Ranvier.Css.Css.px 10.; Ranvier.Css.Css.percent 5. ] None
+                            )
+                            Ranvier.Css.Css.clipPath (
+                                Ranvier.Css.Css.xywh (
+                                    Ranvier.Css.Css.px 0.,
+                                    Ranvier.Css.Css.px 0.,
+                                    Ranvier.Css.Css.percent 50.,
+                                    Ranvier.Css.Css.percent 50.,
+                                    round = Ranvier.Css.Css.px 4.
+                                )
+                            )
+                            Ranvier.Css.Css.transitionTimingFunction (
+                                Ranvier.Css.Css.cubicBezier (
+                                    Ranvier.Css.Css.number 0.25,
+                                    Ranvier.Css.Css.number 0.1,
+                                    Ranvier.Css.Css.number 0.25,
+                                    Ranvier.Css.Css.number 1.
+                                )
+                            )
+                            Ranvier.Css.Css.animationTimingFunction (Ranvier.Css.Css.steps (Ranvier.Css.Css.integer 4))
+                        ]
+
+                    Expect.equal
+                        (declarations
+                         |> List.map Ranvier.Css.Declaration.render)
+                        [
+                            "clip-path: circle(40px at center);"
+                            "clip-path: polygon(0% 0%, 100% 0%, 50% 100%);"
+                            "clip-path: inset(10px 5%);"
+                            "clip-path: xywh(0px 0px 50% 50% round 4px);"
+                            "transition-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);"
+                            "animation-timing-function: steps(4);"
+                        ]
+                        "Runtime constructors serialize the grammar-derived shape and easing functions."
+
+                    let expected =
+                        Ranvier.Css.Style.create (
+                            declarations
+                            |> List.map (fun declaration -> Ranvier.Css.Style.declarations [ declaration ])
+                        )
+
+                    let expectedModule =
+                        {
+                            Name =
+                                "Fixture-"
+                                + Ranvier.Css.Identity.hash "Fixture/Fixture.fs"
+                            Dependencies = []
+                            Rules = []
+                            Styles = [ expected.Definition ]
+                        }
+
+                    for mode in
+                        [
+                            Options.defaults.Mode
+                            OutputMode.SingleFile "app.css"
+                            OutputMode.CssModules
+                        ] do
+                        let assets = { Options.defaults with Mode = mode }
+
+                        let result =
+                            extract
+                                { ExtractionOptions.defaults with
+                                    Assets = assets
+                                }
+                                project
+
+                        match Compiler.compile assets [ expectedModule ] with
+                        | Ok runtime -> Expect.equal result runtime "Extracted shape and easing bytes match the runtime constructors."
+                        | Error errors -> failtest (String.concat "\n" errors)
+            testCase "easing grammar guards remain enforced during extraction"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet invalid = utility { Css.transitionTimingFunction (Css.cubicBezier (Css.number 1.5, Css.number 0., Css.number 0., Css.number 1.)) }\nlet view () = styles { invalid }\n"
+                <| fun project ->
+                    match Extractor.extract ExtractionOptions.defaults project with
+                    | Ok _ -> failtest "A cubic-bezier x outside [0,1] must fail extraction."
+                    | Error errors -> Expect.stringContains errors.Head.Message "range" "Runtime easing guards run during extraction."
             testCase "transform grammar guards remain enforced during extraction"
             <| fun _ ->
                 temporary

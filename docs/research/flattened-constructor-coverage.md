@@ -7,7 +7,8 @@ after a Release build of `src/Ranvier.Css`.
 Update: the planner is now `CompactFunctionGeneration`, parameterised by `FunctionFamily` (type, owner
 location, noun, naming policy), and `<filter-function>` is enabled with Filter Effects names
 (`radius`, `amount`). `<transform-function>` follows with CSS Transforms names (`a`–`f`, `a1`–`d4`,
-`x`/`y`/`z`, `factor`). Recommendations 1 and 2 are done; the survey tables below predate them.
+`x`/`y`/`z`, `factor`). `<basic-shape>` and `<easing-function>` follow with CSS Shapes and CSS Easing
+names. Recommendations 1 to 3 are done, except the `<image>` functions; the survey tables below predate them.
 
 ## The `<color>` fix
 

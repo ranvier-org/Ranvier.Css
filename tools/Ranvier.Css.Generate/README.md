@@ -84,6 +84,8 @@ Every function production admitted by a *function family*'s shared type gets a f
 | `<color>` | `CssValue.Color` | `rgb`, `hsl`, `oklch`, `colorMix`, `lightDark`, ... |
 | `<filter-function>` | `CssValue.Values.FilterFunction` | `blur`, `brightness`, `contrast`, `dropShadow`, `grayscale`, `hueRotate`, `invert`, `opacity`, `saturate`, `sepia` |
 | `<transform-function>` | `CssValue.Values.TransformFunction` | `matrix`, `matrix3d`, `translate`, `translate3d`, `translateX`/`Y`/`Z`, `scale`, `scale3d`, `scaleX`/`Y`/`Z`, `rotate`, `rotate3d`, `rotateX`/`Y`/`Z`, `skew`, `skewX`/`Y`, `perspective` |
+| `<basic-shape>` | `CssValue.Values.BasicShape` | `circle`, `ellipse`, `inset`, `path`, `polygon`, `rect`, `shape`, `xywh` |
+| `<easing-function>` | `CssValue.Values.EasingFunction` | `cubicBezier`, `steps` (`linear()` cannot be flattened) |
 
 `Css` members take optional groups as optional arguments. Owner-module functions are curried and take `option` values for those groups:
 
@@ -110,7 +112,7 @@ A family is a record of the shared type name, the owner location, a noun for sum
 
 Required and list parameters come first, then optional ones, each in grammar order. Generated code and static extraction both call `GrammarRuntime.assemble`, which constructs the value through ordinary `construct`/`admit` validation. Bounds such as `<percentage [0,100]>`, list cardinality and category admission are checked exactly as in structural constructors.
 
-When a function has several syntaxes, the production with the most parameters wins. For example, modern space-separated `rgb()` is preferred over its legacy comma forms. The legacy forms stay available under `CssValue.Values`. The grammar has no names for positional values. Each family's `NamingPolicy` in `CompactFunctionGeneration.fs` names them: color channels (`red`, `green`, `blue`, `lightness`, `chroma`, `hue`, ...) Filter Effects arguments (`radius`, `amount`), and CSS Transforms entries and axes (`a`–`f`, `a1`–`d4`, `x`, `y`, `z`, `factor`). Generation fails if a policy entry no longer matches the grammar's arity or keyword-derived names.
+When a function has several syntaxes, the production with the most parameters wins. For example, modern space-separated `rgb()` is preferred over its legacy comma forms. The legacy forms stay available under `CssValue.Values`. The grammar has no names for positional values. Each family's `NamingPolicy` in `CompactFunctionGeneration.fs` names them: color channels (`red`, `green`, `blue`, `lightness`, `chroma`, `hue`, ...) Filter Effects arguments (`radius`, `amount`), CSS Transforms entries and axes (`a`–`f`, `a1`–`d4`, `x`, `y`, `z`, `factor`), CSS Shapes edges and points (`top`…`left`, `width`, `height`, `points`, `data`), and CSS Easing control points (`x1`, `y1`, `x2`, `y2`, `count`). Generation fails if a policy entry no longer matches the grammar's arity or keyword-derived names.
 
 Constructors check exactly the grammar. Bounds that a specification states only in prose, such as non-negative `blur()` radii and `brightness()` amounts, are not enforced.
 
@@ -118,7 +120,7 @@ Functions outside the policy use grammar-derived names: a preceding keyword (`fr
 
 - positional suffixes for repeated names (`color-hdr()`);
 - functions that cannot be flattened (`contrast-color()`, whose top-level choice combines structured alternatives);
-- `Css` aliases omitted because the name is taken (`color()` stays at `CssValue.Color.color` and `opacity()` at `CssValue.Values.FilterFunction.opacity`, since `Css.color` and `Css.opacity` are properties; likewise `perspective`, `rotate`, `scale` and `translate` stay on `CssValue.Values.TransformFunction`).
+- `Css` aliases omitted because the name is taken (`color()` stays at `CssValue.Color.color` and `opacity()` at `CssValue.Values.FilterFunction.opacity`, since `Css.color` and `Css.opacity` are properties; likewise `perspective`, `rotate`, `scale` and `translate` stay on `CssValue.Values.TransformFunction`, and `inset` on `CssValue.Values.BasicShape`).
 
 Their structural constructors under `CssValue.Functions` and `CssValue.Values` remain available. Factories use kind `assemble`, with the function production as `production`.
 

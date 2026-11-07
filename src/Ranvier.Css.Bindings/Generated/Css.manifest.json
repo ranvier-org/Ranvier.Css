@@ -53297,6 +53297,96 @@
     {
       "argumentType": "parameters",
       "kind": "assemble",
+      "memberName": "circle",
+      "nodeId": 10663,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "circle",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "ellipse",
+      "nodeId": 10838,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "ellipse",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "inset",
+      "nodeId": 11002,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "inset",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "path",
+      "nodeId": 11362,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "path",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "polygon",
+      "nodeId": 11381,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "polygon",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rect",
+      "nodeId": 11439,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "rect",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "shape",
+      "nodeId": 11576,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "shape",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "xywh",
+      "nodeId": 11781,
+      "owner": "Ranvier.Css.CssValue.Values.BasicShape",
+      "production": "xywh",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "cubicBezier",
+      "nodeId": 10812,
+      "owner": "Ranvier.Css.CssValue.Values.EasingFunction",
+      "production": "cubic-bezier",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "steps",
+      "nodeId": 11634,
+      "owner": "Ranvier.Css.CssValue.Values.EasingFunction",
+      "production": "steps",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
       "memberName": "alpha",
       "nodeId": 10572,
       "owner": "Ranvier.Css.Css",
@@ -53679,6 +53769,87 @@
       "nodeId": 11752,
       "owner": "Ranvier.Css.Css",
       "production": "translateZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "circle",
+      "nodeId": 10663,
+      "owner": "Ranvier.Css.Css",
+      "production": "circle",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "ellipse",
+      "nodeId": 10838,
+      "owner": "Ranvier.Css.Css",
+      "production": "ellipse",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "path",
+      "nodeId": 11362,
+      "owner": "Ranvier.Css.Css",
+      "production": "path",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "polygon",
+      "nodeId": 11381,
+      "owner": "Ranvier.Css.Css",
+      "production": "polygon",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rect",
+      "nodeId": 11439,
+      "owner": "Ranvier.Css.Css",
+      "production": "rect",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "shape",
+      "nodeId": 11576,
+      "owner": "Ranvier.Css.Css",
+      "production": "shape",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "xywh",
+      "nodeId": 11781,
+      "owner": "Ranvier.Css.Css",
+      "production": "xywh",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "cubicBezier",
+      "nodeId": 10812,
+      "owner": "Ranvier.Css.Css",
+      "production": "cubic-bezier",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "steps",
+      "nodeId": 11634,
+      "owner": "Ranvier.Css.Css",
+      "production": "steps",
       "unitName": ""
     },
     {
@@ -134826,6 +134997,15 @@
       ]
     },
     {
+      "memberName": "linear",
+      "message": "No production of this easing function can be flattened into named parameters; use its structural constructors under CssValue.Functions.",
+      "nodeId": 11198,
+      "path": [
+        "Values",
+        "EasingFunction"
+      ]
+    },
+    {
       "memberName": "color",
       "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Color constructor.",
       "nodeId": 10683,
@@ -134869,6 +135049,14 @@
       "memberName": "translate",
       "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.TransformFunction constructor.",
       "nodeId": 11735,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "inset",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.BasicShape constructor.",
+      "nodeId": 11002,
       "path": [
         "Css"
       ]

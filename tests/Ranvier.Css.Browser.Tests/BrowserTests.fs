@@ -160,6 +160,8 @@ let run () =
             |> Declaration.render,
             "transform: translate3d(1px, 2%, 3px);"
             CssValue.render (CssValue.Values.TransformFunction.translate (Css.px 10.) None), "translate(10px)"
+            CssValue.render (Css.polygon [ Css.percent 0., Css.percent 0.; Css.percent 100., Css.percent 0. ]), "polygon(0% 0%, 100% 0%)"
+            CssValue.render (Css.cubicBezier (Css.number 0.25, Css.number 0.1, Css.number 0.25, Css.number 1.)), "cubic-bezier(0.25, 0.1, 0.25, 1)"
         ] do
         if actual <> expected then
             failwithf "Portable function construction changed: %s" actual
