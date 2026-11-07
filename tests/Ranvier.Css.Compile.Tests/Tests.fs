@@ -1290,6 +1290,104 @@ do failwith "Filter initializers must never execute during extraction"
                         match Compiler.compile assets [ expectedModule ] with
                         | Ok runtime -> Expect.equal result runtime "Extracted filter bytes and identities match the runtime constructors."
                         | Error errors -> failtest (String.concat "\n" errors)
+            testCase "flattened transform constructors match runtime output in every asset mode"
+            <| fun _ ->
+                temporary
+                    """module Fixture
+open Ranvier.Css
+open Ranvier.Css.View
+let example = utility {
+    Css.transform (Css.matrix (Css.number 1., Css.number 0., Css.number 0., Css.number 1., Css.number 10., Css.number 20.))
+    Css.transform (CssValue.Values.TransformFunction.translate (Css.px 10.) None)
+    Css.transform (Css.rotate3d (Css.number 1., Css.number 0., Css.number 0., Css.deg 90.))
+    Css.transform (CssValue.Values.TransformFunction.scale [ Css.number 2.; Css.percent 50. ])
+    Css.transform (Css.skew (Css.deg 10., y = Css.deg 5.))
+}
+let view () = styles { example }
+do failwith "Transform initializers must never execute during extraction"
+"""
+                <| fun project ->
+                    let declarations =
+                        [
+                            Ranvier.Css.Css.transform (
+                                Ranvier.Css.Css.matrix (
+                                    Ranvier.Css.Css.number 1.,
+                                    Ranvier.Css.Css.number 0.,
+                                    Ranvier.Css.Css.number 0.,
+                                    Ranvier.Css.Css.number 1.,
+                                    Ranvier.Css.Css.number 10.,
+                                    Ranvier.Css.Css.number 20.
+                                )
+                            )
+                            Ranvier.Css.Css.transform (Ranvier.Css.CssValue.Values.TransformFunction.translate (Ranvier.Css.Css.px 10.) None)
+                            Ranvier.Css.Css.transform (
+                                Ranvier.Css.Css.rotate3d (
+                                    Ranvier.Css.Css.number 1.,
+                                    Ranvier.Css.Css.number 0.,
+                                    Ranvier.Css.Css.number 0.,
+                                    Ranvier.Css.Css.deg 90.
+                                )
+                            )
+                            Ranvier.Css.Css.transform (
+                                Ranvier.Css.CssValue.Values.TransformFunction.scale [ Ranvier.Css.Css.number 2.; Ranvier.Css.Css.percent 50. ]
+                            )
+                            Ranvier.Css.Css.transform (Ranvier.Css.Css.skew (Ranvier.Css.Css.deg 10., y = Ranvier.Css.Css.deg 5.))
+                        ]
+
+                    Expect.equal
+                        (declarations
+                         |> List.map Ranvier.Css.Declaration.render)
+                        [
+                            "transform: matrix(1, 0, 0, 1, 10, 20);"
+                            "transform: translate(10px);"
+                            "transform: rotate3d(1, 0, 0, 90deg);"
+                            "transform: scale(2, 50%);"
+                            "transform: skew(10deg, 5deg);"
+                        ]
+                        "Runtime constructors serialize the grammar-derived transform functions."
+
+                    let expected =
+                        Ranvier.Css.Style.create (
+                            declarations
+                            |> List.map (fun declaration -> Ranvier.Css.Style.declarations [ declaration ])
+                        )
+
+                    let expectedModule =
+                        {
+                            Name =
+                                "Fixture-"
+                                + Ranvier.Css.Identity.hash "Fixture/Fixture.fs"
+                            Dependencies = []
+                            Rules = []
+                            Styles = [ expected.Definition ]
+                        }
+
+                    for mode in
+                        [
+                            Options.defaults.Mode
+                            OutputMode.SingleFile "app.css"
+                            OutputMode.CssModules
+                        ] do
+                        let assets = { Options.defaults with Mode = mode }
+
+                        let result =
+                            extract
+                                { ExtractionOptions.defaults with
+                                    Assets = assets
+                                }
+                                project
+
+                        match Compiler.compile assets [ expectedModule ] with
+                        | Ok runtime -> Expect.equal result runtime "Extracted transform bytes and identities match the runtime constructors."
+                        | Error errors -> failtest (String.concat "\n" errors)
+            testCase "transform grammar guards remain enforced during extraction"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet invalid = utility { Css.transform (CssValue.Values.TransformFunction.perspective (Css.px -1.)) }\nlet view () = styles { invalid }\n"
+                <| fun project ->
+                    match Extractor.extract ExtractionOptions.defaults project with
+                    | Ok _ -> failtest "A negative perspective must fail extraction."
+                    | Error errors -> Expect.stringContains errors.Head.Message "range" "Runtime transform guards run during extraction."
             testCase "filter grammar guards remain enforced during extraction"
             <| fun _ ->
                 temporary

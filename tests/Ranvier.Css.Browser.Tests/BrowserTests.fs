@@ -156,9 +156,13 @@ let run () =
             |> Declaration.render,
             "filter: blur(4px);"
             CssValue.render (Css.dropShadow ([ Css.px 2.; Css.px 4. ], color = CssValue.Color.black)), "drop-shadow(black 2px 4px)"
+            Css.transform (Css.translate3d (Css.px 1., Css.percent 2., Css.px 3.))
+            |> Declaration.render,
+            "transform: translate3d(1px, 2%, 3px);"
+            CssValue.render (CssValue.Values.TransformFunction.translate (Css.px 10.) None), "translate(10px)"
         ] do
         if actual <> expected then
-            failwithf "Portable color construction changed: %s" actual
+            failwithf "Portable function construction changed: %s" actual
 
     let rejectedHex =
         try

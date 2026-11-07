@@ -53108,6 +53108,195 @@
     {
       "argumentType": "parameters",
       "kind": "assemble",
+      "memberName": "matrix",
+      "nodeId": 11212,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "matrix",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "matrix3d",
+      "nodeId": 11215,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "matrix3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "perspective",
+      "nodeId": 11368,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "perspective",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotate",
+      "nodeId": 11491,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "rotate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotate3d",
+      "nodeId": 11495,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "rotate3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateX",
+      "nodeId": 11506,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "rotateX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateY",
+      "nodeId": 11510,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "rotateY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateZ",
+      "nodeId": 11514,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "rotateZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scale",
+      "nodeId": 11534,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "scale",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scale3d",
+      "nodeId": 11545,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "scale3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleX",
+      "nodeId": 11550,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "scaleX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleY",
+      "nodeId": 11556,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "scaleY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleZ",
+      "nodeId": 11562,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "scaleZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skew",
+      "nodeId": 11591,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "skew",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skewX",
+      "nodeId": 11601,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "skewX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skewY",
+      "nodeId": 11605,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "skewY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translate",
+      "nodeId": 11735,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "translate",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translate3d",
+      "nodeId": 11741,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "translate3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateX",
+      "nodeId": 11748,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "translateX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateY",
+      "nodeId": 11750,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "translateY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateZ",
+      "nodeId": 11752,
+      "owner": "Ranvier.Css.CssValue.Values.TransformFunction",
+      "production": "translateZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
       "memberName": "alpha",
       "nodeId": 10572,
       "owner": "Ranvier.Css.Css",
@@ -53337,6 +53526,159 @@
       "nodeId": 11571,
       "owner": "Ranvier.Css.Css",
       "production": "sepia",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "matrix",
+      "nodeId": 11212,
+      "owner": "Ranvier.Css.Css",
+      "production": "matrix",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "matrix3d",
+      "nodeId": 11215,
+      "owner": "Ranvier.Css.Css",
+      "production": "matrix3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotate3d",
+      "nodeId": 11495,
+      "owner": "Ranvier.Css.Css",
+      "production": "rotate3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateX",
+      "nodeId": 11506,
+      "owner": "Ranvier.Css.Css",
+      "production": "rotateX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateY",
+      "nodeId": 11510,
+      "owner": "Ranvier.Css.Css",
+      "production": "rotateY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rotateZ",
+      "nodeId": 11514,
+      "owner": "Ranvier.Css.Css",
+      "production": "rotateZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scale3d",
+      "nodeId": 11545,
+      "owner": "Ranvier.Css.Css",
+      "production": "scale3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleX",
+      "nodeId": 11550,
+      "owner": "Ranvier.Css.Css",
+      "production": "scaleX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleY",
+      "nodeId": 11556,
+      "owner": "Ranvier.Css.Css",
+      "production": "scaleY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "scaleZ",
+      "nodeId": 11562,
+      "owner": "Ranvier.Css.Css",
+      "production": "scaleZ",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skew",
+      "nodeId": 11591,
+      "owner": "Ranvier.Css.Css",
+      "production": "skew",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skewX",
+      "nodeId": 11601,
+      "owner": "Ranvier.Css.Css",
+      "production": "skewX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "skewY",
+      "nodeId": 11605,
+      "owner": "Ranvier.Css.Css",
+      "production": "skewY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translate3d",
+      "nodeId": 11741,
+      "owner": "Ranvier.Css.Css",
+      "production": "translate3d",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateX",
+      "nodeId": 11748,
+      "owner": "Ranvier.Css.Css",
+      "production": "translateX",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateY",
+      "nodeId": 11750,
+      "owner": "Ranvier.Css.Css",
+      "production": "translateY",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "translateZ",
+      "nodeId": 11752,
+      "owner": "Ranvier.Css.Css",
+      "production": "translateZ",
       "unitName": ""
     },
     {
@@ -134495,6 +134837,38 @@
       "memberName": "opacity",
       "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.FilterFunction constructor.",
       "nodeId": 11335,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "perspective",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.TransformFunction constructor.",
+      "nodeId": 11368,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "rotate",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.TransformFunction constructor.",
+      "nodeId": 11491,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "scale",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.TransformFunction constructor.",
+      "nodeId": 11534,
+      "path": [
+        "Css"
+      ]
+    },
+    {
+      "memberName": "translate",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Values.TransformFunction constructor.",
+      "nodeId": 11735,
       "path": [
         "Css"
       ]
