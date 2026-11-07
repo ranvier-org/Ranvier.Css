@@ -1,5 +1,5 @@
 ---
-last_commit_released: 3bc774c054f07dc8ea6dc282438c173e91cead6b
+last_commit_released: 9c4d37ef26ae2881751a8f486438d8815cb795f6
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -12,6 +12,14 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.1.1-alpha.4 - 2026-11-07
+
+### 🚀 Features
+
+* *(css)* Make the Ranvier.Css package include the bindings (#15) ([9c4d37e](https://github.com/ranvier-org/Ranvier.Css/commit/9c4d37ef26ae2881751a8f486438d8815cb795f6))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/3bc774c054f07dc8ea6dc282438c173e91cead6b..9c4d37ef26ae2881751a8f486438d8815cb795f6)</small></strong>
 
 ## 0.1.1-alpha.3 - 2026-11-07
 
