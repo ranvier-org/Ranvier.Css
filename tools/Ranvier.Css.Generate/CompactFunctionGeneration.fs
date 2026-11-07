@@ -124,8 +124,42 @@ module internal CompactFunctionGeneration =
             NamingPolicy = Map.ofList (("blur", [ "radius" ]) :: amount)
         }
 
+    /// <summary>Transform function constructors on <c>CssValue.Values.TransformFunction</c>.</summary>
+    /// <remarks>
+    /// Names follow CSS Transforms 1 and 2: matrix entries <c>a</c>–<c>f</c> and <c>a1</c>–<c>d4</c>, axes <c>x</c>,
+    /// <c>y</c> and <c>z</c>, and <c>factor</c> for scale arguments admitting numbers and percentages.
+    /// </remarks>
+    let transformFunction =
+        let matrix3d =
+            [
+                for row in 1..4 do
+                    for column in [ "a"; "b"; "c"; "d" ] do
+                        column + string row
+            ]
+
+        {
+            TypeName = "transform-function"
+            Location = [ "Values"; "TransformFunction" ]
+            Noun = "transform"
+            NamingPolicy =
+                Map.ofList
+                    [
+                        "matrix", [ "a"; "b"; "c"; "d"; "e"; "f" ]
+                        "matrix3d", matrix3d
+                        "translate", [ "x"; "y" ]
+                        "translate3d", [ "x"; "y"; "z" ]
+                        "scale", [ "factors" ]
+                        "scale3d", [ "x"; "y"; "z" ]
+                        "scaleX", [ "factor" ]
+                        "scaleY", [ "factor" ]
+                        "scaleZ", [ "factor" ]
+                        "rotate3d", [ "x"; "y"; "z"; "angle" ]
+                        "skew", [ "x"; "y" ]
+                    ]
+        }
+
     /// <summary>Families in emission order; an earlier family claims a contested <c>Css</c> alias.</summary>
-    let families = [ color; filterFunction ]
+    let families = [ color; filterFunction; transformFunction ]
 
     let rec private nodeName (graph: GrammarGraph) id =
         let node = graph.NodesById[id]

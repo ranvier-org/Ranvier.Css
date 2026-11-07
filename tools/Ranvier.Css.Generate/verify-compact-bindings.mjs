@@ -198,6 +198,18 @@ let main _ =
     equal "drop-shadow" "drop-shadow(black 2px 4px 6px)" (CssValue.render (Css.dropShadow ([ CssValue.px 2.; CssValue.px 4.; CssValue.px 6. ], color = CssValue.Color.black)))
     equal "curried opacity" "opacity(40%)" (CssValue.render (CssValue.Values.FilterFunction.opacity (Some (CssValue.percent 40.))))
     rejects "drop-shadow length count" (fun () -> Css.dropShadow [ CssValue.px 1. ] |> ignore)
+    contains "matrix sink" "transform: matrix(1, 0, 0, 1, 10, 20);" (css (Css.transform (Css.matrix (CssValue.number 1., CssValue.number 0., CssValue.number 0., CssValue.number 1., CssValue.number 10., CssValue.number 20.))))
+    equal "translate omits y" "translate(10px)" (CssValue.render (CssValue.Values.TransformFunction.translate (CssValue.px 10.) None))
+    equal "translate" "translate(10px, 50%)" (CssValue.render (CssValue.Values.TransformFunction.translate (CssValue.px 10.) (Some (CssValue.percent 50.))))
+    equal "translate3d" "translate3d(1px, 2%, 3px)" (CssValue.render (Css.translate3d (CssValue.px 1., CssValue.percent 2., CssValue.px 3.)))
+    equal "rotate" "rotate(45deg)" (CssValue.render (CssValue.Values.TransformFunction.rotate (CssValue.deg 45.)))
+    equal "rotate3d" "rotate3d(1, 0, 0, 90deg)" (CssValue.render (Css.rotate3d (CssValue.number 1., CssValue.number 0., CssValue.number 0., CssValue.deg 90.)))
+    equal "scale factors" "scale(2, 50%)" (CssValue.render (CssValue.Values.TransformFunction.scale [ CssValue.number 2.; CssValue.percent 50. ]))
+    equal "scaleX" "scaleX(150%)" (CssValue.render (Css.scaleX (CssValue.percent 150.)))
+    equal "skew" "skew(10deg, 5deg)" (CssValue.render (Css.skew (CssValue.deg 10., y = CssValue.deg 5.)))
+    equal "perspective" "perspective(500px)" (CssValue.render (CssValue.Values.TransformFunction.perspective (CssValue.px 500.)))
+    rejects "scale factor count" (fun () -> CssValue.Values.TransformFunction.scale [ CssValue.number 1.; CssValue.number 2.; CssValue.number 3. ] |> ignore)
+    rejects "negative perspective" (fun () -> CssValue.Values.TransformFunction.perspective (CssValue.px -1.) |> ignore)
     printfn "Compact public API runtime checks passed."
     0
 `;
@@ -225,6 +237,9 @@ const rejections = [
   ['AngleBlur', 'Css.blur (CssValue.deg 1.)', ['FS0041', 'FS0001', 'FS0193']],
   ['FilterAsColor', 'Css.color (Css.blur (CssValue.px 1.))', ['FS0041', 'FS0001', 'FS0193']],
   ['OpacityAliasIsProperty', 'Css.filter (Css.opacity (CssValue.percent 1.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['RotateAliasIsProperty', 'Css.transform (Css.rotate (CssValue.deg 1.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['LengthMatrixEntry', 'Css.matrix (CssValue.px 1., CssValue.number 0., CssValue.number 0., CssValue.number 1., CssValue.number 0., CssValue.number 0.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['TransformAsFilter', 'Css.filter (Css.skewX (CssValue.deg 1.))', ['FS0041', 'FS0001', 'FS0193']],
 ].map(([name, expression, code]) => ({ name, expression, code }));
 const negative = path.join(output, 'negative');
 await fs.mkdir(negative);

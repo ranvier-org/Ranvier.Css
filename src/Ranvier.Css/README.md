@@ -50,6 +50,8 @@ Examples: `Css.oklch (Css.percent 60., Css.number 0.15, Css.deg 50., alpha = Css
 
 Filter functions follow the same pattern: `Css.filter (Css.blur (Css.px 4.))`, `Css.brightness (Css.percent 150.)`, `Css.hueRotate (Css.deg 90.)` and `Css.dropShadow ([ Css.px 2.; Css.px 4. ], color = CssValue.Color.black)` work in `filter` and `backdrop-filter`. `CssValue.Values.FilterFunction` holds the curried forms; `opacity()` is only available there, because `Css.opacity` is the property.
 
+Transform functions use CSS Transforms parameter names: `Css.matrix (a, b, c, d, e, f)`, `Css.translate3d (Css.px 1., Css.percent 2., Css.px 3.)`, `Css.rotate3d (x, y, z, Css.deg 90.)` and `Css.skew (Css.deg 10., y = Css.deg 5.)` work in `transform`. `perspective`, `rotate`, `scale` and `translate` share names with properties, so they live only on `CssValue.Values.TransformFunction`, for example `CssValue.Values.TransformFunction.translate (Css.px 10.) None`.
+
 CSS-wide property keywords (`initial`, `inherit`, `unset`, `revert`, `revert-layer`, `revert-rule`) work as static declarations, for example `Css.color Css.initial`. F# reserved keyword names such as `inherit` require double-backtick escaping. For changing CSS-wide values, use `CssView.inlineStyle` with a reader returning these declarations. The sugar deliberately supplies no variable-backed reader overload for these keyword markers: substituting them through a variable changes their cascade meaning. The generated keyword registry comes from the current `all` property specification.
 
 ## Authoring methods
