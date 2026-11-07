@@ -4,6 +4,10 @@ Status: investigation, 2026-11-07. Data: checked-in `Css.manifest.json` (`@webre
 Reproduce with `dotnet fsi tools/Ranvier.Css.Generate/constructor-coverage.fsx -- [types|detail <names>|primitives]`
 after a Release build of `src/Ranvier.Css`.
 
+Update: the planner is now `CompactFunctionGeneration`, parameterised by `FunctionFamily` (type, owner
+location, noun, naming policy), and `<filter-function>` is enabled with Filter Effects names
+(`radius`, `amount`). Recommendation 1 is done; the survey tables below predate it.
+
 ## The `<color>` fix
 
 Before the typed color constructors, a value such as `oklch(60% 0.15 50deg / 0.5)` existed only as

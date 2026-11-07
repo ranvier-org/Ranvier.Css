@@ -70,6 +70,28 @@ let private colorCatalogue (lightDark: string) =
     |> Result.toOption
     |> Option.defaultWith (fun () -> failtest "The color generation fixture must be valid.")
 
+let private filterCatalogue () =
+    let json =
+        """{"properties":[
+            {"name":"all","href":"https://example.test/all","syntax":"initial | inherit | unset | revert | revert-layer | revert-rule"},
+            {"name":"filter","href":"https://example.test/filter-property","syntax":"none | <filter-function>+"},
+            {"name":"opacity","href":"https://example.test/opacity-property","syntax":"<number> | <percentage>"}
+        ],"types":[
+            {"name":"filter-function","href":"https://example.test/filter-function","syntax":"<blur()> | <brightness()> | <opacity()> | <shift()>"},
+            {"name":"length","href":"https://example.test/length"},
+            {"name":"number","href":"https://example.test/number"},
+            {"name":"percentage","href":"https://example.test/percentage"}
+        ],"functions":[
+            {"name":"blur()","href":"https://example.test/blur","syntax":"blur( <length>? )"},
+            {"name":"brightness()","href":"https://example.test/brightness","syntax":"brightness( [ <number> | <percentage> ]? )"},
+            {"name":"opacity()","href":"https://example.test/opacity","syntax":"opacity( [ <number> | <percentage> ]? )"},
+            {"name":"shift()","href":"https://example.test/shift","syntax":"shift( <length>, <length> )"}
+        ],"selectors":[],"atrules":[]}"""
+
+    Webref.consume "filter-generation" (Encoding.UTF8.GetBytes json)
+    |> Result.toOption
+    |> Option.defaultWith (fun () -> failtest "The filter generation fixture must be valid.")
+
 let private compactOutput input =
     RuntimeGeneration.generate "Example.Compact" input
     |> Result.toOption
@@ -420,6 +442,53 @@ let private compactCases =
                         compactOutput (colorCatalogue "light-dark(<color>, <color>, <color>)")
                         |> ignore)
                     "A policy whose arity no longer matches the specification fails generation."
+
+            testCase "filter functions generate flattened constructors on their family owner"
+            <| fun _ ->
+                let output = compactOutput (filterCatalogue ())
+                use manifest = JsonDocument.Parse output.Manifest
+
+                let factories =
+                    manifest.RootElement.GetProperty("factories").EnumerateArray()
+                    |> Seq.map (fun factory ->
+                        (factory.GetProperty("owner").GetString(), factory.GetProperty("memberName").GetString()),
+                        (factory.GetProperty("kind").GetString(), factory.GetProperty("production").GetString()))
+                    |> Map.ofSeq
+
+                for owner, memberName, production in
+                    [
+                        "Example.Compact.CssValue.Values.FilterFunction", "blur", "blur"
+                        "Example.Compact.CssValue.Values.FilterFunction", "opacity", "opacity"
+                        "Example.Compact.Css", "blur", "blur"
+                        "Example.Compact.Css", "brightness", "brightness"
+                    ] do
+                    Expect.equal
+                        (Map.tryFind (owner, memberName) factories)
+                        (Some ("assemble", production))
+                        "Filter constructors use the shared assembly factory kind."
+
+                Expect.isNone (Map.tryFind ("Example.Compact.Css", "opacity") factories) "The opacity property keeps its Css name."
+
+                Expect.isNone (Map.tryFind ("Example.Compact.CssValue.Color", "hex") factories) "Only the color family emits hex colors."
+
+                Expect.stringContains output.Source "let ``blur`` (``radius``: " "The filter naming policy names the blur radius."
+                Expect.stringContains output.Source "?``amount``: " "Number-or-percentage filter arguments are named amount."
+                Expect.stringContains output.Source "let ``shift`` (``length``: " "Functions outside the policy keep derived names."
+
+                let issues =
+                    manifest.RootElement.GetProperty("ownerIssues").EnumerateArray()
+                    |> Seq.map (fun issue -> issue.GetProperty("memberName").GetString(), issue.GetProperty("message").GetString())
+                    |> Seq.toList
+
+                for memberName, fragment in
+                    [
+                        "shift", "Repeated filter function parameters"
+                        "opacity", "use the CssValue.Values.FilterFunction constructor"
+                    ] do
+                    Expect.isTrue
+                        (issues
+                         |> List.exists (fun (name, message) -> name = memberName && message.Contains fragment))
+                        "Filter coverage limits name their family and owner."
         ]
 
 

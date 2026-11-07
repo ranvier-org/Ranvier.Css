@@ -4,8 +4,8 @@ open System
 open System.Text.RegularExpressions
 open Ranvier.Css.Internal
 
-/// <summary>A named flattened parameter of a generated color function constructor.</summary>
-type internal ColorParameter =
+/// <summary>A named flattened parameter of a generated function constructor.</summary>
+type internal FunctionParameter =
     {
         Name: string
         Parameter: GrammarRuntime.Parameter
@@ -13,8 +13,8 @@ type internal ColorParameter =
         Items: (string * GrammarRuntime.Parameter) list
     }
 
-/// <summary>A CSS color function admitted by <c>&lt;color&gt;</c> with grammar-derived parameters.</summary>
-type internal ColorFunction =
+/// <summary>A CSS function admitted by a family's shared type, with grammar-derived parameters.</summary>
+type internal FunctionConstructor =
     {
         /// <summary>The CSS function name, such as <c>oklch</c>.</summary>
         FunctionName: string
@@ -22,25 +22,38 @@ type internal ColorFunction =
         /// <summary>The selected function production.</summary>
         NodeId: int
         /// <summary>Parameters in runtime <c>tryParameters</c> order: required and repeated first, then optional.</summary>
-        Parameters: ColorParameter list
+        Parameters: FunctionParameter list
     }
 
-type internal ColorPlan =
+/// <summary>A shared CSS type whose admitted functions receive flattened constructors.</summary>
+type internal FunctionFamily =
     {
-        ColorRoot: int option
-        HexColor: int option
-        Functions: ColorFunction list
+        /// <summary>The unscoped type name, such as <c>color</c>.</summary>
+        TypeName: string
+        /// <summary>The <c>CssValue</c> module path that receives the constructors.</summary>
+        Location: string list
+        /// <summary>The noun used in generated summaries and diagnostics, such as <c>color</c>.</summary>
+        Noun: string
+        /// <summary>Parameter names in runtime parameter order, keyed by CSS function name.</summary>
+        NamingPolicy: Map<string, string list>
+    }
+
+type internal FamilyPlan =
+    {
+        Family: FunctionFamily
+        Root: int option
+        Functions: FunctionConstructor list
         Issues: CompactOwnerIssue list
     }
 
-/// <summary>Plans flattened constructors for every function production admitted by the shared <c>&lt;color&gt;</c> type.</summary>
+/// <summary>Plans flattened constructors for every function production admitted by a family's shared type.</summary>
 /// <remarks>
 /// Structure, punctuation, optional groups, repetitions, value categories and validation come from the grammar graph
 /// through <c>GrammarRuntime.tryParameters</c>, the same kernel used by generated code and static extraction.
-/// The grammar does not name positional channels, so a small explicit naming policy supplies those names. The generator
+/// The grammar does not name positional values, so each family's naming policy supplies those names. The generator
 /// rejects a policy entry whose arity or keyword-derived names disagree with the grammar.
 /// </remarks>
-module internal CompactColorGeneration =
+module internal CompactFunctionGeneration =
     let private camel (value: string) =
         let words =
             Regex.Matches (value, "[A-Za-z0-9]+")
@@ -59,29 +72,60 @@ module internal CompactColorGeneration =
                    + word.Substring 1)
                |> String.concat "")
 
-    /// <summary>Channel names in runtime parameter order, keyed by CSS function name.</summary>
-    /// <remarks>Names follow CSS Color 4, CSS Color 5 and CSS Color HDR component terminology.</remarks>
-    let namingPolicy =
+    /// <summary>Color function constructors on <c>CssValue.Color</c>.</summary>
+    /// <remarks>Channel names follow CSS Color 4, CSS Color 5 and CSS Color HDR component terminology.</remarks>
+    let color =
         let modern channels =
             channels @ [ "from"; "alpha" ]
 
-        Map.ofList
+        {
+            TypeName = "color"
+            Location = [ "Color" ]
+            Noun = "color"
+            NamingPolicy =
+                Map.ofList
+                    [
+                        "rgb", modern [ "red"; "green"; "blue" ]
+                        "rgba", modern [ "red"; "green"; "blue" ]
+                        "hsl", modern [ "hue"; "saturation"; "lightness" ]
+                        "hsla", modern [ "hue"; "saturation"; "lightness" ]
+                        "hwb", modern [ "hue"; "whiteness"; "blackness" ]
+                        "lab", modern [ "lightness"; "a"; "b" ]
+                        "lch", modern [ "lightness"; "chroma"; "hue" ]
+                        "oklab", modern [ "lightness"; "a"; "b" ]
+                        "oklch", modern [ "lightness"; "chroma"; "hue" ]
+                        "ictcp", modern [ "i"; "ct"; "cp" ]
+                        "jzazbz", modern [ "jz"; "az"; "bz" ]
+                        "jzczhz", modern [ "jz"; "cz"; "hz" ]
+                        "device-cmyk", [ "cyan"; "magenta"; "yellow"; "black"; "alpha" ]
+                        "light-dark", [ "light"; "dark" ]
+                    ]
+        }
+
+    /// <summary>Filter function constructors on <c>CssValue.Values.FilterFunction</c>.</summary>
+    /// <remarks>Names follow Filter Effects 1: <c>amount</c> admits both numbers and percentages.</remarks>
+    let filterFunction =
+        let amount =
             [
-                "rgb", modern [ "red"; "green"; "blue" ]
-                "rgba", modern [ "red"; "green"; "blue" ]
-                "hsl", modern [ "hue"; "saturation"; "lightness" ]
-                "hsla", modern [ "hue"; "saturation"; "lightness" ]
-                "hwb", modern [ "hue"; "whiteness"; "blackness" ]
-                "lab", modern [ "lightness"; "a"; "b" ]
-                "lch", modern [ "lightness"; "chroma"; "hue" ]
-                "oklab", modern [ "lightness"; "a"; "b" ]
-                "oklch", modern [ "lightness"; "chroma"; "hue" ]
-                "ictcp", modern [ "i"; "ct"; "cp" ]
-                "jzazbz", modern [ "jz"; "az"; "bz" ]
-                "jzczhz", modern [ "jz"; "cz"; "hz" ]
-                "device-cmyk", [ "cyan"; "magenta"; "yellow"; "black"; "alpha" ]
-                "light-dark", [ "light"; "dark" ]
+                "brightness"
+                "contrast"
+                "grayscale"
+                "invert"
+                "opacity"
+                "saturate"
+                "sepia"
             ]
+            |> List.map (fun name -> name, [ "amount" ])
+
+        {
+            TypeName = "filter-function"
+            Location = [ "Values"; "FilterFunction" ]
+            Noun = "filter"
+            NamingPolicy = Map.ofList (("blur", [ "radius" ]) :: amount)
+        }
+
+    /// <summary>Families in emission order; an earlier family claims a contested <c>Css</c> alias.</summary>
+    let families = [ color; filterFunction ]
 
     let rec private nodeName (graph: GrammarGraph) id =
         let node = graph.NodesById[id]
@@ -142,38 +186,32 @@ module internal CompactColorGeneration =
             | GrammarRuntime.Repeated (_, items) -> items.Length
             | _ -> 1)
 
-    /// <summary>Selects one flattenable production for each color function and names its parameters.</summary>
-    let plan (graph: GrammarGraph) : ColorPlan =
-        let root =
-            graph.Roots
-            |> Map.toSeq
-            |> Seq.tryPick (fun (feature, id) ->
-                if
-                    feature.Kind = FeatureKind.Type
-                    && feature.Scopes.IsEmpty
-                    && feature.Name = "color"
-                then
-                    Some id
-                else
-                    None)
+    let private typeRoot (graph: GrammarGraph) name =
+        graph.Roots
+        |> Map.tryPick (fun feature id ->
+            if
+                feature.Kind = FeatureKind.Type
+                && feature.Scopes.IsEmpty
+                && feature.Name = name
+            then
+                Some id
+            else
+                None)
 
-        let hex =
-            graph.Roots
-            |> Map.tryPick (fun feature id ->
-                if
-                    feature.Kind = FeatureKind.Type
-                    && feature.Scopes.IsEmpty
-                    && feature.Name = "hex-color"
-                then
-                    Some id
-                else
-                    None)
+    /// <summary>Returns the <c>&lt;hex-color&gt;</c> root when the grammar defines both it and <c>&lt;color&gt;</c>.</summary>
+    let hexColor (graph: GrammarGraph) =
+        typeRoot graph color.TypeName
+        |> Option.bind (fun _ -> typeRoot graph "hex-color")
 
-        match root with
+    /// <summary>Selects one flattenable production for each function of the family and names its parameters.</summary>
+    let plan (graph: GrammarGraph) (family: FunctionFamily) : FamilyPlan =
+        let noun = family.Noun
+
+        match typeRoot graph family.TypeName with
         | None ->
             {
-                ColorRoot = None
-                HexColor = None
+                Family = family
+                Root = None
                 Functions = []
                 Issues = []
             }
@@ -186,7 +224,7 @@ module internal CompactColorGeneration =
                 issues.Add
                     {
                         NodeId = id
-                        Path = [ "Color" ]
+                        Path = family.Location
                         Member = memberName
                         Message = message
                     }
@@ -212,7 +250,9 @@ module internal CompactColorGeneration =
                         issue
                             (productions |> Seq.map _.Id |> Seq.min)
                             memberName
-                            "No production of this color function can be flattened into named parameters; use its structural constructors under CssValue.Functions."
+                            ("No production of this "
+                             + noun
+                             + " function can be flattened into named parameters; use its structural constructors under CssValue.Functions.")
 
                         None
                     | _ ->
@@ -225,11 +265,13 @@ module internal CompactColorGeneration =
                         let derived = named graph parameters
 
                         let names =
-                            match Map.tryFind functionName namingPolicy with
+                            match Map.tryFind functionName family.NamingPolicy with
                             | Some policy ->
                                 if policy.Length <> parameters.Length then
                                     invalidOp (
-                                        "The color naming policy for "
+                                        "The "
+                                        + noun
+                                        + " naming policy for "
                                         + functionName
                                         + "() lists "
                                         + string policy.Length
@@ -244,7 +286,9 @@ module internal CompactColorGeneration =
                                     | GrammarRuntime.Required (_, keyword)
                                     | GrammarRuntime.Optional (_, keyword) when keyword <> "" && camel keyword <> name ->
                                         invalidOp (
-                                            "The color naming policy for "
+                                            "The "
+                                            + noun
+                                            + " naming policy for "
                                             + functionName
                                             + "() names the grammar keyword '"
                                             + keyword
@@ -263,7 +307,9 @@ module internal CompactColorGeneration =
                                     issue
                                         id
                                         memberName
-                                        "Repeated color function parameters have no distinct grammar names; positional suffixes are used until an explicit naming policy is added."
+                                        ("Repeated "
+                                         + noun
+                                         + " function parameters have no distinct grammar names; positional suffixes are used until an explicit naming policy is added.")
 
                                 names
 
@@ -272,7 +318,9 @@ module internal CompactColorGeneration =
                             <> names.Length
                         then
                             invalidOp (
-                                "The color naming policy for "
+                                "The "
+                                + noun
+                                + " naming policy for "
                                 + functionName
                                 + "() repeats a parameter name."
                             )
@@ -297,14 +345,14 @@ module internal CompactColorGeneration =
                 |> Seq.toList
 
             {
-                ColorRoot = Some root
-                HexColor = hex
+                Family = family
+                Root = Some root
                 Functions = functions
                 Issues = List.ofSeq issues
             }
 
     /// <summary>Lists every grammar node a planned constructor references in its public signature.</summary>
-    let referencedNodes (plan: ColorPlan) =
+    let referencedNodes (plan: FamilyPlan) =
         let rec nodes parameter =
             match parameter with
             | GrammarRuntime.Required (id, _)
@@ -312,10 +360,9 @@ module internal CompactColorGeneration =
             | GrammarRuntime.Repeated (_, items) -> items |> Array.toList |> List.collect nodes
 
         [
-            yield! Option.toList plan.HexColor
-            for colorFunction in plan.Functions do
-                yield colorFunction.NodeId
+            for constructor in plan.Functions do
+                yield constructor.NodeId
 
-                for parameter in colorFunction.Parameters do
+                for parameter in constructor.Parameters do
                     yield! nodes parameter.Parameter
         ]

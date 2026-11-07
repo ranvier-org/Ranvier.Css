@@ -152,6 +152,10 @@ let run () =
             CssValue.render (CssValue.Color.hsl (Css.deg 120.) (Css.percent 50.) (Css.percent 25.) None None), "hsl(120deg 50% 25%)"
             CssValue.render (Css.colorMix [ CssValue.Color.red, Some (Css.percent 40.); Css.hex "00f", None ]), "color-mix(red 40%, #00f)"
             CssValue.render (Css.lightDark (CssValue.Color.white, Css.hex "#111111")), "light-dark(white, #111111)"
+            Css.filter (Css.blur (Css.px 4.))
+            |> Declaration.render,
+            "filter: blur(4px);"
+            CssValue.render (Css.dropShadow ([ Css.px 2.; Css.px 4. ], color = CssValue.Color.black)), "drop-shadow(black 2px 4px)"
         ] do
         if actual <> expected then
             failwithf "Portable color construction changed: %s" actual

@@ -75,9 +75,16 @@ let border =
     |> Css.border
 ```
 
-### Color functions
+### Function constructors
 
-Every function production that the shared `<color>` type admits gets a flattened constructor on `CssValue.Color`, with a matching `Css` member when the name is free. `Css` members take optional groups as optional arguments. `CssValue.Color` functions are curried and take `option` values for those groups:
+Every function production admitted by a *function family*'s shared type gets a flattened constructor on the family's owner module, with a matching `Css` member when the name is free. `CompactFunctionGeneration.families` lists the families in emission order:
+
+| Family | Owner | Functions |
+|---|---|---|
+| `<color>` | `CssValue.Color` | `rgb`, `hsl`, `oklch`, `colorMix`, `lightDark`, ... |
+| `<filter-function>` | `CssValue.Values.FilterFunction` | `blur`, `brightness`, `contrast`, `dropShadow`, `grayscale`, `hueRotate`, `invert`, `opacity`, `saturate`, `sepia` |
+
+`Css` members take optional groups as optional arguments. Owner-module functions are curried and take `option` values for those groups:
 
 ```fsharp
 let accent = Css.oklch (Css.percent 59.69, Css.number 0.156, Css.deg 49.77, alpha = Css.number 0.5)
@@ -85,9 +92,14 @@ let relative = Css.rgb (Css.number 255., Css.percent 50., CssValue.Color.none, f
 let mixed = Css.colorMix [ accent, Some (Css.percent 40.); Css.hex "#fff", None ]
 let curried = CssValue.Color.hsl (Css.deg 120.) (Css.percent 50.) (Css.percent 25.) None None
 let declaration = Css.color (Css.lightDark (CssValue.Color.white, Css.hex "111"))
+let blurred = Css.filter (Css.blur (Css.px 4.))
+let shadow = Css.dropShadow ([ Css.px 2.; Css.px 4. ], color = CssValue.Color.black)
+let faded = CssValue.Values.FilterFunction.opacity (Some (Css.percent 40.))
 ```
 
-`CompactColorGeneration.plan` collects the function nodes reachable from `<color>`. It asks the runtime kernel's `GrammarRuntime.tryParameters` how each production flattens:
+A family is a record of the shared type name, the owner location, a noun for summaries and diagnostics, and a naming policy. Adding a family appends one record to `families`. An earlier family keeps a contested `Css` alias.
+
+`CompactFunctionGeneration.plan` collects the function nodes reachable from the family's type. It asks the runtime kernel's `GrammarRuntime.tryParameters` how each production flattens:
 
 - Literals, including `,` `/` and keywords such as `from`, are inserted automatically.
 - Value references and keyword choices become typed parameters, typed by their existing grammar categories.
@@ -97,13 +109,15 @@ let declaration = Css.color (Css.lightDark (CssValue.Color.white, Css.hex "111")
 
 Required and list parameters come first, then optional ones, each in grammar order. Generated code and static extraction both call `GrammarRuntime.assemble`, which constructs the value through ordinary `construct`/`admit` validation. Bounds such as `<percentage [0,100]>`, list cardinality and category admission are checked exactly as in structural constructors.
 
-When a function has several syntaxes, the production with the most parameters wins. For example, modern space-separated `rgb()` is preferred over its legacy comma forms. The legacy forms stay available under `CssValue.Values`. The grammar has no names for positional channels. The `namingPolicy` table in `CompactColorGeneration.fs` names them (`red`, `green`, `blue`, `lightness`, `chroma`, `hue`, ...). Generation fails if a policy entry no longer matches the grammar's arity or keyword-derived names.
+When a function has several syntaxes, the production with the most parameters wins. For example, modern space-separated `rgb()` is preferred over its legacy comma forms. The legacy forms stay available under `CssValue.Values`. The grammar has no names for positional values. Each family's `NamingPolicy` in `CompactFunctionGeneration.fs` names them: color channels (`red`, `green`, `blue`, `lightness`, `chroma`, `hue`, ...) and Filter Effects arguments (`radius`, `amount`). Generation fails if a policy entry no longer matches the grammar's arity or keyword-derived names.
+
+Constructors check exactly the grammar. Bounds that a specification states only in prose, such as non-negative `blur()` radii and `brightness()` amounts, are not enforced.
 
 Functions outside the policy use grammar-derived names: a preceding keyword (`from`), else the referenced type without a `-value` suffix (`alpha`). The manifest records these coverage limits in `ownerIssues`:
 
 - positional suffixes for repeated names (`color-hdr()`);
 - functions that cannot be flattened (`contrast-color()`, whose top-level choice combines structured alternatives);
-- `Css` aliases omitted because the name is taken (`color()` stays at `CssValue.Color.color`, since `Css.color` is the property).
+- `Css` aliases omitted because the name is taken (`color()` stays at `CssValue.Color.color` and `opacity()` at `CssValue.Values.FilterFunction.opacity`, since `Css.color` and `Css.opacity` are properties).
 
 Their structural constructors under `CssValue.Functions` and `CssValue.Values` remain available. Factories use kind `assemble`, with the function production as `production`.
 

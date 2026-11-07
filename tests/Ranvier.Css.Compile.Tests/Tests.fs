@@ -1216,6 +1216,88 @@ do failwith "Color initializers must never execute during extraction"
                                 + invalid
                             )
                         | Error errors -> Expect.stringContains errors.Head.Message fragment "Runtime color guards run during extraction."
+            testCase "flattened filter constructors match runtime output in every asset mode"
+            <| fun _ ->
+                temporary
+                    """module Fixture
+open Ranvier.Css
+open Ranvier.Css.View
+let example = utility {
+    Css.filter (Css.blur (Css.px 4.))
+    Css.backdropFilter (Css.dropShadow ([ Css.px 2.; Css.px 4.; Css.px 6. ], color = CssValue.Color.black))
+    Css.filter (CssValue.Values.FilterFunction.opacity (Some (Css.percent 40.)))
+    Css.backdropFilter (Css.hueRotate ())
+}
+let view () = styles { example }
+do failwith "Filter initializers must never execute during extraction"
+"""
+                <| fun project ->
+                    let declarations =
+                        [
+                            Ranvier.Css.Css.filter (Ranvier.Css.Css.blur (Ranvier.Css.Css.px 4.))
+                            Ranvier.Css.Css.backdropFilter (
+                                Ranvier.Css.Css.dropShadow (
+                                    [ Ranvier.Css.Css.px 2.; Ranvier.Css.Css.px 4.; Ranvier.Css.Css.px 6. ],
+                                    color = Ranvier.Css.CssValue.Color.black
+                                )
+                            )
+                            Ranvier.Css.Css.filter (Ranvier.Css.CssValue.Values.FilterFunction.opacity (Some (Ranvier.Css.Css.percent 40.)))
+                            Ranvier.Css.Css.backdropFilter (Ranvier.Css.Css.hueRotate ())
+                        ]
+
+                    Expect.equal
+                        (declarations
+                         |> List.map Ranvier.Css.Declaration.render)
+                        [
+                            "filter: blur(4px);"
+                            "backdrop-filter: drop-shadow(black 2px 4px 6px);"
+                            "filter: opacity(40%);"
+                            "backdrop-filter: hue-rotate();"
+                        ]
+                        "Runtime constructors serialize the grammar-derived filter functions."
+
+                    let expected =
+                        Ranvier.Css.Style.create (
+                            declarations
+                            |> List.map (fun declaration -> Ranvier.Css.Style.declarations [ declaration ])
+                        )
+
+                    let expectedModule =
+                        {
+                            Name =
+                                "Fixture-"
+                                + Ranvier.Css.Identity.hash "Fixture/Fixture.fs"
+                            Dependencies = []
+                            Rules = []
+                            Styles = [ expected.Definition ]
+                        }
+
+                    for mode in
+                        [
+                            Options.defaults.Mode
+                            OutputMode.SingleFile "app.css"
+                            OutputMode.CssModules
+                        ] do
+                        let assets = { Options.defaults with Mode = mode }
+
+                        let result =
+                            extract
+                                { ExtractionOptions.defaults with
+                                    Assets = assets
+                                }
+                                project
+
+                        match Compiler.compile assets [ expectedModule ] with
+                        | Ok runtime -> Expect.equal result runtime "Extracted filter bytes and identities match the runtime constructors."
+                        | Error errors -> failtest (String.concat "\n" errors)
+            testCase "filter grammar guards remain enforced during extraction"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet invalid = utility { Css.filter (Css.dropShadow [ Css.px 1. ]) }\nlet view () = styles { invalid }\n"
+                <| fun project ->
+                    match Extractor.extract ExtractionOptions.defaults project with
+                    | Ok _ -> failtest "A drop-shadow with one length must fail extraction."
+                    | Error errors -> Expect.stringContains errors.Head.Message "cardinality" "Runtime filter guards run during extraction."
             testCase "unbounded recursion is diagnosed"
             <| fun _ ->
                 temporary
