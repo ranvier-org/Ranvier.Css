@@ -142,6 +142,30 @@ let run () =
         then
             failwithf "Nonportable number %A" number
 
+    for actual, expected in
+        [
+            Css.color (Css.rgb (Css.number 255., Css.percent 50., CssValue.Color.none, alpha = Css.number 0.5))
+            |> Declaration.render,
+            "color: rgb(255 50% none / 0.5);"
+            CssValue.render (Css.oklch (Css.percent 59.69, Css.number 0.156, Css.deg 49.77, from = CssValue.Color.red)),
+            "oklch(from red 59.69% 0.156 49.77deg)"
+            CssValue.render (CssValue.Color.hsl (Css.deg 120.) (Css.percent 50.) (Css.percent 25.) None None), "hsl(120deg 50% 25%)"
+            CssValue.render (Css.colorMix [ CssValue.Color.red, Some (Css.percent 40.); Css.hex "00f", None ]), "color-mix(red 40%, #00f)"
+            CssValue.render (Css.lightDark (CssValue.Color.white, Css.hex "#111111")), "light-dark(white, #111111)"
+        ] do
+        if actual <> expected then
+            failwithf "Portable color construction changed: %s" actual
+
+    let rejectedHex =
+        try
+            Css.hex "#12345" |> ignore
+            false
+        with :? System.ArgumentException ->
+            true
+
+    if not rejectedHex then
+        failwith "Portable hex color validation changed."
+
     for mode in
         [
             SynchronousCommits

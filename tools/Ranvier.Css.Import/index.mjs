@@ -107,7 +107,7 @@ function prepareCompact(manifest) {
     if (!nodes.has(item.nodeId)) throw new Error('Unknown compact property node.');
     if (!properties.has(item.cssName.toLowerCase())) properties.set(item.cssName.toLowerCase(), item);
   }
-  const factories = manifest.factories.filter(factory => ['number', 'integer', 'string', 'token', 'wide'].includes(factory.kind));
+  const factories = manifest.factories.filter(factory => ['number', 'integer', 'string', 'hexColor', 'token', 'wide'].includes(factory.kind));
   for (const factory of factories) {
     if (!nodes.has(factory.nodeId)) throw new Error('Unknown compact factory node.');
   }
@@ -187,6 +187,7 @@ function compactTypedValue(token, property, map) {
     else if (numeric && token.type === 'Percentage' && factory.unitName === '%') argument = numberLiteral(token.value, false);
     else if (numeric && token.type === 'Number' && !factory.unitName) argument = numberLiteral(token.value, factory.argumentType === 'int' || factory.kind === 'integer');
     else if (factory.kind === 'string' && token.type === 'String') argument = literal(token.value);
+    else if (factory.kind === 'hexColor' && token.type === 'Hash' && /^(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(token.value)) argument = literal('#' + token.value);
     if (argument === null || (factory.argumentType === 'none' && Number(token.value) !== 0)) continue;
     const atom = numeric ? { nodeId: compactNumericIdentity(map, factory), magnitude: Number(token.value), unit: factory.unitName ?? '' } : { nodeId: factory.nodeId };
     if (!compactAdmits(map, factory.nodeId, atom) || !compactAdmits(map, property.nodeId, atom)) continue;

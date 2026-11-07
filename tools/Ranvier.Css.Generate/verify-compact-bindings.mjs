@@ -162,6 +162,33 @@ let main _ =
     for identifier in ["-"; "-1"; "inherit"; "revert-rule"] do rejects "custom identifier" (fun () -> CssValue.CustomIdent.create identifier |> ignore)
     rejects "negative animation duration" (fun () -> Css.animationDuration (CssValue.s -1.) |> ignore)
     rejects "empty duration list" (fun () -> CssValue.Animation.Duration.create [] |> ignore)
+    contains "rgb sink" "color: rgb(255 0 0);" (css (Css.color (Css.rgb (CssValue.number 255., CssValue.number 0., CssValue.number 0.))))
+    equal "rgb none and alpha" "rgb(255 50% none / 0.5)" (CssValue.render (Css.rgb (CssValue.number 255., CssValue.percent 50., CssValue.Color.none, alpha = CssValue.number 0.5)))
+    equal "curried hsl" "hsl(120deg 50% 25% / 80%)" (CssValue.Color.hsl (CssValue.deg 120.) (CssValue.percent 50.) (CssValue.percent 25.) None (Some (CssValue.percent 80.)) |> CssValue.render)
+    equal "oklch" "oklch(59.69% 0.156 49.77deg)" (CssValue.render (Css.oklch (CssValue.percent 59.69, CssValue.number 0.156, CssValue.deg 49.77)))
+    equal "relative oklch" "oklch(from red 50% 0.1 30deg)" (CssValue.render (Css.oklch (CssValue.percent 50., CssValue.number 0.1, CssValue.deg 30., from = CssValue.Color.red)))
+    equal "lab" "lab(29.2345% 39.3825 20.0664)" (CssValue.render (Css.lab (CssValue.percent 29.2345, CssValue.number 39.3825, CssValue.number 20.0664)))
+    equal "hwb" "hwb(194 0% 0%)" (CssValue.render (Css.hwb (CssValue.number 194., CssValue.percent 0., CssValue.percent 0.)))
+    equal "color-mix" "color-mix(red 40%, blue)" (CssValue.render (Css.colorMix [ CssValue.Color.red, Some (CssValue.percent 40.); CssValue.Color.blue, None ]))
+    equal "color-mix method" "color-mix(in srgb, red, blue)" (CssValue.render (Css.colorMix ([ CssValue.Color.red, None; CssValue.Color.blue, None ], colorInterpolationMethod = CssValue.Values.ColorInterpolationMethod.create CssValue.Values.ColorSpace.srgb)))
+    equal "light-dark" "light-dark(white, #111)" (CssValue.render (Css.lightDark (CssValue.Color.white, Css.hex "#111")))
+    equal "alpha" "alpha(from red / 25%)" (CssValue.render (Css.alpha (CssValue.Color.red, CssValue.percent 25.)))
+    equal "device-cmyk" "device-cmyk(0 0.81 0.81 0.3)" (CssValue.render (Css.deviceCmyk (CssValue.number 0., CssValue.number 0.81, CssValue.number 0.81, CssValue.number 0.3)))
+    equal "hex" "#ff0000" (CssValue.Color.hex "ff0000" |> CssValue.render)
+    equal "hex alias" "#ABCD" (CssValue.hex "#ABCD" |> CssValue.render)
+    contains "hex sink" "background-color: #abc;" (css (Css.backgroundColor (Css.hex "#abc")))
+    contains "color in border" "border: 1px solid oklch(70% 0.1 200deg);" (css (Css.border (CssValue.Border.create (Some (CssValue.px 1.)) (Some CssValue.Border.Style.solid) (Some (Css.oklch (CssValue.percent 70., CssValue.number 0.1, CssValue.deg 200.))))))
+    let chooseColor flag =
+        if flag then Css.hex "#000" :> CssValue.Color.Value
+        else Css.rgb (CssValue.number 1., CssValue.number 2., CssValue.number 3.)
+    contains "color branch widening" "color: rgb(1 2 3);" (css (Css.color (chooseColor false)))
+    let colorReader = Style.create [Css.color (fun (dark: bool) -> if dark then Css.hex "#000" :> CssValue.Color.Value else Css.oklch (CssValue.percent 90., CssValue.number 0.02, CssValue.deg 90.))]
+    contains "color reader" "oklch(90% 0.02 90deg)" (Style.renderVariables false colorReader)
+    let colorVariable : CssValue.Variable<CssValue.Color.Value> = CssValue.variable "--brand"
+    contains "color variable fallback" "color: var(--brand, rgb(1 2 3));" (css (Css.color (CssValue.Variable.withFallback colorVariable (Css.rgb (CssValue.number 1., CssValue.number 2., CssValue.number 3.)))))
+    for hex in ["#12345"; "#ggg"; ""] do rejects "hex color" (fun () -> Css.hex hex |> ignore)
+    rejects "color-mix percentage range" (fun () -> Css.colorMix [ CssValue.Color.red, Some (CssValue.percent 101.) ] |> ignore)
+    rejects "empty color-mix" (fun () -> Css.colorMix [] |> ignore)
     printfn "Compact public API runtime checks passed."
     0
 `;
@@ -181,6 +208,11 @@ const rejections = [
   ['WideReader', 'Css.width (fun (_:unit) -> CssValue.initial)', ['FS0041', 'FS0001', 'FS0193']],
   ['AllWideReader', 'Css.width (fun (_:unit) -> CssValue.All.initial)', ['FS0041', 'FS0001', 'FS0193']],
   ['AngleReaderAsWidth', 'Css.width (fun (_:float) -> CssValue.deg 90.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['LengthColorChannel', 'Css.rgb (CssValue.px 1., CssValue.number 0., CssValue.number 0.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['PercentageHue', 'Css.hsl (CssValue.percent 10., CssValue.percent 50., CssValue.percent 50.)', ['FS0041', 'FS0001', 'FS0193']],
+  ['ColorFunctionAsWidth', 'Css.width (Css.rgb (CssValue.number 1., CssValue.number 2., CssValue.number 3.))', ['FS0041', 'FS0001', 'FS0193']],
+  ['NumericHex', 'Css.hex 0xff0000', ['FS0041', 'FS0001']],
+  ['ColorMixWithoutList', 'Css.colorMix (CssValue.Color.red, None)', ['FS0041', 'FS0001', 'FS0193']],
 ].map(([name, expression, code]) => ({ name, expression, code }));
 const negative = path.join(output, 'negative');
 await fs.mkdir(negative);

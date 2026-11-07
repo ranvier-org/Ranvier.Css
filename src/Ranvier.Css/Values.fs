@@ -229,6 +229,32 @@ module Generated =
 
         value input
 
+    /// <summary>Validates a CSS hex color of 3, 4, 6 or 8 hexadecimal digits, with or without its leading number sign.</summary>
+    /// <remarks>Digit case is preserved; the serialized token always starts with <c>#</c>.</remarks>
+    let hexColor (input: string) : Value<'tag> =
+        if isNull input then
+            nullArg "input"
+
+        let digits =
+            if input.StartsWith ("#", StringComparison.Ordinal) then
+                input.Substring 1
+            else
+                input
+
+        if
+            not (List.contains digits.Length [ 3; 4; 6; 8 ])
+            || not (
+                digits
+                |> Seq.forall (fun c ->
+                    (c >= '0' && c <= '9')
+                    || (c >= 'a' && c <= 'f')
+                    || (c >= 'A' && c <= 'F'))
+            )
+        then
+            invalidArg "input" "Expected a CSS hex color with 3, 4, 6 or 8 hexadecimal digits."
+
+        value ("#" + digits)
+
     /// <summary>Joins nonempty grammar components with their source separators.</summary>
     let sequence (parts: (string * string) list) : Value<'tag> =
         let mutable result = ""

@@ -199,3 +199,15 @@ test('checked-in compact manifest supports the default atomic authoring API and 
   assert.match(result.source, /CssValue\.Color\.red/);
   assert.equal(result.report.rawDeclarations, 3);
 });
+
+test('checked-in compact manifest imports hex colors through the validated hex factory', () => {
+  const manifest = JSON.parse(fs.readFileSync(new URL('../../src/Ranvier.Css.Bindings/Generated/Css.manifest.json', import.meta.url), 'utf8'));
+  const result = generate('.a { color:#FF0000; background-color:#abcd; border-color:#12345; width:#fff; color:rgb(1 2 3); }', manifest);
+  assert.match(result.source, /Css\.color \(Css\.hex "#FF0000"\)/);
+  assert.match(result.source, /Css\.backgroundColor \(Css\.hex "#abcd"\)/);
+  assert.match(result.source, /Declaration\.create "border-color" "#12345"/);
+  assert.match(result.source, /Declaration\.create "width" "#fff"/);
+  assert.match(result.source, /Declaration\.create "color" "rgb\(1 2 3\)"/);
+  assert.equal(result.report.typedDeclarations, 2);
+  assert.equal(result.report.rawDeclarations, 3);
+});

@@ -16,6 +16,7 @@
     <Compile Include="CompactCategoryGeneration.fs" />
     <Compile Include="CompactRepresentationGeneration.fs" />
     <Compile Include="CompactOwnerGeneration.fs" />
+    <Compile Include="CompactColorGeneration.fs" />
     <Compile Include="CompactStorageGeneration.fs" />
     <Compile Include="NumericProjection.fs" />
     <Compile Include="Generation.fs" />

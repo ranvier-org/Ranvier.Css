@@ -623,6 +623,53 @@ module GrammarRuntime =
                 | None when optional || nullable table child -> ""
                 | None -> invalidArg "values" "A nonnullable CSS grammar component is required.")
 
+        let comma index =
+            let child = lookup table node.Children[index]
+            child.Kind = 1 && child.Text = ","
+
+        // Serializes commas canonically: no separator before a comma and one space after it.
+        let joinCommas (parts: string array) =
+            let separators =
+                parts
+                |> Array.mapi (fun index _ ->
+                    let previous =
+                        seq { index - 1 .. -1 .. 0 }
+                        |> Seq.tryFind (fun earlier -> parts[earlier] <> "")
+
+                    if comma index then
+                        ""
+                    elif previous |> Option.exists comma then
+                        " "
+                    elif index < node.Separators.Length then
+                        node.Separators[index]
+                    else
+                        " ")
+
+            join separators parts
+
+        let omitCommas (parts: string array) =
+
+            let content index =
+                parts[index] <> "" && not (comma index)
+
+            let kept = Array.copy parts
+            let mutable previousComma = false
+
+            for index in 0 .. kept.Length - 1 do
+                if kept[index] <> "" then
+                    if comma index then
+                        let before = Seq.exists content (seq { 0 .. index - 1 })
+                        let after = Seq.exists content (seq { index + 1 .. kept.Length - 1 })
+
+                        if not before || not after || previousComma then
+                            kept[index] <- ""
+                        else
+                            previousComma <- true
+                    else
+                        previousComma <- false
+
+            kept
+
         match node.Kind with
         | 1 ->
             arity 0
@@ -634,7 +681,7 @@ module GrammarRuntime =
             arity 1
             let value = item nodeId values[0]
             value |> ranged node
-        | 4
+        | 4 -> make (joinCommas (omitCommas (parts false))) None
         | 5 -> make (join node.Separators (parts false)) None
         | 6 ->
             let components =
@@ -716,3 +763,315 @@ module GrammarRuntime =
             | _ -> invalidArg "operation" "CSS boolean operations require not(single) or and/or(nonempty)."
 
         ValueData (nodeId, text, None)
+
+    /// <summary>One flattened constructor parameter derived from a function production.</summary>
+    /// <remarks>Required and repeated parameters precede optional parameters; each group retains grammar order.</remarks>
+#if !FABLE_COMPILER
+    [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+    type Parameter =
+        /// <summary>A value admitted at the node; the keyword is a word literal that precedes it in the grammar, or empty.</summary>
+        | Required of nodeId: int * keyword: string
+        /// <summary>An omissible value admitted at the node; omission also omits the literals of its optional group.</summary>
+        | Optional of nodeId: int * keyword: string
+        /// <summary>A list for a repetition node; each item supplies the item parameters in their declared order.</summary>
+        | Repeated of nodeId: int * items: Parameter array
+
+#if !FABLE_COMPILER
+        member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+            NativeDisplay.union context depth precedence (box this) (fun n ->
+                match this with
+                | Required (id, keyword) ->
+                    "Required",
+                    [
+                        Some (fun _ -> NativeDisplay.int32 context n id)
+                        Some (fun _ -> NativeDisplay.text context n keyword)
+                    ]
+                | Optional (id, keyword) ->
+                    "Optional",
+                    [
+                        Some (fun _ -> NativeDisplay.int32 context n id)
+                        Some (fun _ -> NativeDisplay.text context n keyword)
+                    ]
+                | Repeated (id, items) ->
+                    "Repeated",
+                    [
+                        Some (fun _ -> NativeDisplay.int32 context n id)
+                        Some (fun _ -> NativeDisplay.array context n (fun c d p (item: Parameter) -> item.NativeDisplay (c, d, p)) items)
+                    ])
+
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
+
+    /// <summary>An argument for one flattened constructor parameter.</summary>
+#if !FABLE_COMPILER
+    [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+#endif
+    type Argument =
+        /// <summary>A value for a required or optional parameter.</summary>
+        | Supplied of ValueData
+        /// <summary>The omission of an optional parameter.</summary>
+        | Omitted
+        /// <summary>The items of a repeated parameter, each listing its item arguments.</summary>
+        | Items of Argument array list
+
+#if !FABLE_COMPILER
+        member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
+            NativeDisplay.union context depth precedence (box this) (fun n ->
+                match this with
+                | Supplied value -> "Supplied", [ Some (fun p -> value.NativeDisplay (context, n, p)) ]
+                | Omitted -> "Omitted", []
+                | Items items ->
+                    "Items",
+                    [
+                        Some (fun _ ->
+                            NativeDisplay.list
+                                context
+                                n
+                                (fun c d _ (item: Argument array) ->
+                                    NativeDisplay.array c d (fun c d p (argument: Argument) -> argument.NativeDisplay (c, d, p)) item)
+                                items)
+                    ])
+
+        override this.ToString() =
+            if System.Runtime.CompilerServices.RuntimeFeature.IsDynamicCodeSupported then
+                sprintf "%+A" this
+            else
+                NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
+#endif
+
+    /// <summary>Wraps an optional value as a flattened constructor argument.</summary>
+    let optional (value: ValueData option) =
+        match value with
+        | Some value -> Supplied value
+        | None -> Omitted
+
+    type private Template =
+        | Literal of string
+        | Slot of int
+        | Build of int * Template array
+        | Maybe of int * Template
+        | Fixed of int * Template array
+        | Many of int * Template
+
+    let rec private plan table id =
+        let node = lookup table id
+
+        let all (templates: Template option array) =
+            if Array.forall Option.isSome templates then
+                Some (Array.map Option.get templates)
+            else
+                None
+
+        match node.Kind with
+        | 1 -> Some (Literal node.Text)
+        | 0
+        | 2
+        | 11
+        | 12 -> Some (Slot id)
+        | 3 when
+            node.Children
+            |> Array.forall (fun child -> List.contains (lookup table child).Kind [ 0; 1; 2 ])
+            ->
+            Some (Slot id)
+        | 4
+        | 5
+        | 8
+        | 9
+        | 10 ->
+            node.Children
+            |> Array.map (plan table)
+            |> all
+            |> Option.map (fun children -> Build (id, children))
+        | 7 ->
+            plan table node.Children[0]
+            |> Option.bind (fun child ->
+                // Counts values a template consumes and whether it already contains optional groups or lists.
+                let rec count template =
+                    match template with
+                    | Literal _ -> 0, false, false
+                    | Slot _ -> 1, false, false
+                    | Maybe (_, inner) ->
+                        let size, _, lists = count inner
+                        size, true, lists
+                    | Many _ -> 1, false, true
+                    | Build (_, children)
+                    | Fixed (_, children) ->
+                        children
+                        |> Array.fold
+                            (fun (total, optional, lists) child ->
+                                let size, innerOptional, innerLists = count child
+                                total + size, optional || innerOptional, lists || innerLists)
+                            (0, false, false)
+
+                let size, optional, lists = count child
+
+                if node.Minimum = 0 && node.Maximum = 1 then
+                    if size = 1 && not optional && not lists then
+                        Some (Maybe (id, child))
+                    else
+                        None
+                elif node.Minimum = node.Maximum && node.Minimum > 0 then
+                    if size > 0 then
+                        Some (Fixed (id, Array.replicate node.Minimum child))
+                    else
+                        None
+                elif size > 0 && not lists then
+                    Some (Many (id, child))
+                else
+                    None)
+        | _ -> None
+
+    let private word (text: string) =
+        text <> ""
+        && Char.IsLetter text[0]
+        && text
+           |> Seq.forall (fun c -> Char.IsLetterOrDigit c || c = '-')
+
+    let rec private leaves template =
+        match template with
+        | Literal _ -> []
+        | Slot id -> [ Required (id, "") ]
+        | Maybe (_, inner) ->
+            leaves inner
+            |> List.map (function
+                | Required (id, keyword) -> Optional (id, keyword)
+                | other -> other)
+        | Many (id, item) -> [ Repeated (id, publicOrder (leaves item) |> List.toArray) ]
+        | Fixed (_, children) -> children |> Array.toList |> List.collect leaves
+        | Build (_, children) ->
+            let mutable keyword = ""
+
+            [
+                for child in children do
+                    match child with
+                    | Literal text -> keyword <- if word text then text else ""
+                    | Slot id ->
+                        yield Required (id, keyword)
+                        keyword <- ""
+                    | other ->
+                        yield! leaves other
+                        keyword <- ""
+            ]
+
+    /// <summary>Lists grammar positions in public order: required and repeated values first, then optional values.</summary>
+    and private publicPositions (parameters: Parameter list) =
+        let required, optional =
+            parameters
+            |> List.indexed
+            |> List.partition (function
+                | _, Optional _ -> false
+                | _ -> true)
+
+        required @ optional |> List.map fst
+
+    and private publicOrder (parameters: Parameter list) =
+        let parameters = List.toArray parameters
+
+        publicPositions (List.ofArray parameters)
+        |> List.map (fun position -> parameters[position])
+
+    let private grammarOrder (parameters: Parameter list) (arguments: Argument array) =
+        let positions = publicPositions parameters
+
+        if arguments.Length <> positions.Length then
+            invalidArg "arguments" "Flattened CSS constructor arity does not match its parameters."
+
+        let ordered = Array.create positions.Length Omitted
+
+        positions
+        |> List.iteri (fun publicIndex grammarIndex -> ordered[grammarIndex] <- arguments[publicIndex])
+
+        ordered
+
+    /// <summary>Returns the flattened public parameters of a production, or <c>None</c> when its grammar needs structural constructors.</summary>
+    /// <remarks>Optional groups must contain one value and repetitions may not nest lists or optional groups.</remarks>
+    let tryParameters table nodeId =
+        plan table nodeId
+        |> Option.map (leaves >> publicOrder >> List.toArray)
+
+    /// <summary>Constructs a production from flattened arguments in <see cref="tryParameters" /> order.</summary>
+    /// <remarks>Every inserted literal and supplied value is checked by <c>construct</c> and its grammar admissions.</remarks>
+    let assemble table nodeId (arguments: Argument array) =
+        if isNull arguments then
+            nullArg "arguments"
+
+        let template =
+            plan table nodeId
+            |> Option.defaultWith (fun () -> invalidArg "nodeId" "This CSS production cannot be constructed from flattened arguments.")
+
+        let rec evaluate template (cursor: int ref) (arguments: Argument array) =
+            let next () =
+                if cursor.Value >= arguments.Length then
+                    invalidArg "arguments" "Flattened CSS constructor arguments are missing."
+
+                let argument = arguments[cursor.Value]
+                cursor.Value <- cursor.Value + 1
+                argument
+
+            match template with
+            | Literal text -> Some (token text)
+            | Slot _ ->
+                match next () with
+                | Supplied value -> Some value
+                | Omitted -> invalidArg "arguments" "A required CSS constructor argument was omitted."
+                | Items _ -> invalidArg "arguments" "A CSS constructor value cannot be a list."
+            | Build (id, children) ->
+                Some (
+                    construct
+                        table
+                        id
+                        (children
+                         |> Array.map (fun child -> evaluate child cursor arguments))
+                )
+            | Maybe (id, inner) ->
+                if cursor.Value >= arguments.Length then
+                    invalidArg "arguments" "Flattened CSS constructor arguments are missing."
+
+                match arguments[cursor.Value] with
+                | Omitted ->
+                    cursor.Value <- cursor.Value + 1
+                    None
+                | _ -> Some (construct table id [| evaluate inner cursor arguments |])
+            | Fixed (id, children) ->
+                Some (
+                    construct
+                        table
+                        id
+                        (children
+                         |> Array.map (fun child -> evaluate child cursor arguments))
+                )
+            | Many (id, item) ->
+                match next () with
+                | Items items ->
+                    let parameters = leaves item
+
+                    items
+                    |> List.map (fun itemArguments ->
+                        if isNull itemArguments then
+                            nullArg "arguments"
+
+                        let ordered = grammarOrder parameters itemArguments
+                        let itemCursor = ref 0
+                        let value = evaluate item itemCursor ordered
+
+                        if itemCursor.Value <> ordered.Length then
+                            invalidArg "arguments" "Flattened CSS list item arguments were not consumed."
+
+                        value)
+                    |> List.toArray
+                    |> construct table id
+                    |> Some
+                | _ -> invalidArg "arguments" "A repeated CSS constructor argument requires a list."
+
+        let ordered = grammarOrder (leaves template) arguments
+        let cursor = ref 0
+
+        match evaluate template cursor ordered with
+        | Some value when cursor.Value = ordered.Length -> value
+        | Some _ -> invalidArg "arguments" "Flattened CSS constructor arguments were not consumed."
+        | None -> invalidArg "nodeId" "A flattened CSS production must produce a value."

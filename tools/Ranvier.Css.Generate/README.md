@@ -75,6 +75,42 @@ let border =
     |> Css.border
 ```
 
+### Color functions
+
+Every function production that the shared `<color>` type admits gets a flattened constructor on `CssValue.Color`, with a matching `Css` member when the name is free. `Css` members take optional groups as optional arguments. `CssValue.Color` functions are curried and take `option` values for those groups:
+
+```fsharp
+let accent = Css.oklch (Css.percent 59.69, Css.number 0.156, Css.deg 49.77, alpha = Css.number 0.5)
+let relative = Css.rgb (Css.number 255., Css.percent 50., CssValue.Color.none, from = accent)
+let mixed = Css.colorMix [ accent, Some (Css.percent 40.); Css.hex "#fff", None ]
+let curried = CssValue.Color.hsl (Css.deg 120.) (Css.percent 50.) (Css.percent 25.) None None
+let declaration = Css.color (Css.lightDark (CssValue.Color.white, Css.hex "111"))
+```
+
+`CompactColorGeneration.plan` collects the function nodes reachable from `<color>`. It asks the runtime kernel's `GrammarRuntime.tryParameters` how each production flattens:
+
+- Literals, including `,` `/` and keywords such as `from`, are inserted automatically.
+- Value references and keyword choices become typed parameters, typed by their existing grammar categories.
+- `?` groups holding one value become optional parameters.
+- Fixed repetitions such as `{3}` expand into separate parameters.
+- Comma lists become F# lists, using tuples when an item has several values.
+
+Required and list parameters come first, then optional ones, each in grammar order. Generated code and static extraction both call `GrammarRuntime.assemble`, which constructs the value through ordinary `construct`/`admit` validation. Bounds such as `<percentage [0,100]>`, list cardinality and category admission are checked exactly as in structural constructors.
+
+When a function has several syntaxes, the production with the most parameters wins. For example, modern space-separated `rgb()` is preferred over its legacy comma forms. The legacy forms stay available under `CssValue.Values`. The grammar has no names for positional channels. The `namingPolicy` table in `CompactColorGeneration.fs` names them (`red`, `green`, `blue`, `lightness`, `chroma`, `hue`, ...). Generation fails if a policy entry no longer matches the grammar's arity or keyword-derived names.
+
+Functions outside the policy use grammar-derived names: a preceding keyword (`from`), else the referenced type without a `-value` suffix (`alpha`). The manifest records these coverage limits in `ownerIssues`:
+
+- positional suffixes for repeated names (`color-hdr()`);
+- functions that cannot be flattened (`contrast-color()`, whose top-level choice combines structured alternatives);
+- `Css` aliases omitted because the name is taken (`color()` stays at `CssValue.Color.color`, since `Css.color` is the property).
+
+Their structural constructors under `CssValue.Functions` and `CssValue.Values` remain available. Factories use kind `assemble`, with the function production as `production`.
+
+`<hex-color>` is prose-defined, so it is handled like the other built-in prose primitives. `CssValue.HexColor.create`, `CssValue.hex`, `Css.hex` and `CssValue.Color.hex` validate 3, 4, 6 or 8 hexadecimal digits, with an optional leading `#`, and preserve digit case. Factories use kind `hexColor`. The CSS importer converts hash tokens through this factory.
+
+Grammar sequences serialize commas canonically. A comma takes no preceding space and one following space. Commas beside omitted optional components are dropped, as CSS Values 4 requires. So `color-mix()` without an interpolation method and legacy `rgb()` without alpha never emit dangling commas.
+
 Each meaningful owner exports a `Value` interface for ordinary F# annotations. A conditional needs a common category on its first branch; later compatible branches coerce implicitly:
 
 ```fsharp
