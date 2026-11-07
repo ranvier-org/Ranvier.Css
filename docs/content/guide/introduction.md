@@ -6,11 +6,11 @@ order: 1
 ## Installation
 
 ```bash frame="terminal"
-dotnet add package Ranvier.Css.Bindings --version 0.1.1-alpha.1
+dotnet add package Ranvier.Css --prerelease
 ```
 
-The bindings package includes the portable `Ranvier.Css` runtime as a dependency.
-Both support .NET 8, .NET 10 and Fable.
+The `Ranvier.Css` package brings the portable runtime (`Ranvier.Css.Core`) and the generated
+property bindings (`Ranvier.Css.Bindings`). Both support .NET 8, .NET 10 and Fable.
 
 For reactive view integration, add `Ranvier.Css.View` version `0.1.1-alpha.1`.
 Static asset compilation uses the separate .NET 10 `Ranvier.Css.Build` package.

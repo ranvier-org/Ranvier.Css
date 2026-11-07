@@ -4,6 +4,9 @@ updaters:
   - xml:
       file: Ranvier.Css.fsproj
       selector: /Project/PropertyGroup/Version
+  - xml:
+      file: ../Ranvier.Css.Package/Ranvier.Css.Package.fsproj
+      selector: /Project/PropertyGroup/Version
 ---
 
 # Changelog
