@@ -60307,6 +60307,10 @@ module CssValue =
             let ``allowEnd``  = Keywords.``allow-end``
             /// <summary>Constructs the CSS last value and validates its grammar.</summary>
             let ``last``  = Keywords.``last``
+    /// <summary>CSS HashToken value vocabulary.</summary>
+    module ``HashToken`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.hashToken value in CssGrammar.makeC6453(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 6453 (global.Ranvier.Css.Generated.text canonical))
     /// <summary>CSS Height value vocabulary.</summary>
     module ``Height`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>
@@ -60415,6 +60419,10 @@ module CssValue =
         let ``manual``  = Keywords.``manual``
         /// <summary>Constructs the CSS auto value and validates its grammar.</summary>
         let ``auto``  = Keywords.``auto``
+    /// <summary>CSS Id value vocabulary.</summary>
+    module ``Id`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.hashToken value in CssGrammar.makeC6544(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 6544 (global.Ranvier.Css.Generated.text canonical))
     /// <summary>CSS Ident value vocabulary.</summary>
     module ``Ident`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>
@@ -68611,6 +68619,10 @@ module CssValue =
         let ``auto``  = Keywords.``auto``
         /// <summary>Constructs the CSS fixed value and validates its grammar.</summary>
         let ``fixed``  = Keywords.``fixed``
+    /// <summary>CSS TargetName value vocabulary.</summary>
+    module ``TargetName`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.stringValue value in CssGrammar.makeC10115(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 10115 (global.Ranvier.Css.Generated.text canonical))
     /// <summary>CSS TextAlign value vocabulary.</summary>
     module ``TextAlign`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>
@@ -69643,6 +69655,10 @@ module CssValue =
         let variableWithFallback (name: string) (fallback: Numeric.ICalculationExpression<Numeric.CalculationUnits.time,Numeric.CalculationPercentBasis<Numeric.CalculationUnits.time>>) : Numeric.TimePercentage = let calculation = global.Ranvier.Css.CalculationRuntime.reference "time-percentage" name (Some fallback.Calculation) in let checkedValue = global.Ranvier.Css.CalculationRuntime.declaration "--numeric-value" ({ PercentagesAllowed = true; PercentageBasis = Some global.Ranvier.Css.Spec.NumericDimension.Time } : global.Ranvier.Css.Spec.NumericContext) (global.Ranvier.Css.Spec.NumericSemantics.dimension global.Ranvier.Css.Spec.NumericDimension.Time) calculation in let text = global.Ranvier.Css.RuntimeApi.declarationValue checkedValue in Numeric.TimePercentage((global.Ranvier.Css.Generated.value text : global.Ranvier.Css.Value<CssGrammar.C10175>), calculation, global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 10175 text)
         /// <summary>Constructs the CSS create value and validates its grammar.</summary>
         let ``create`` (value: #Categories.``TimePercentage``.Value) : Value = CssGrammar.makeC10175(global.Ranvier.Css.Internal.GrammarRuntime.admit CssGrammar.table 10175 (value :> CssGrammar.IValue).Data)
+    /// <summary>CSS TimelineRangeName value vocabulary.</summary>
+    module ``TimelineRangeName`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.identifier false false value in CssGrammar.makeC10179(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 10179 (global.Ranvier.Css.Generated.text canonical))
     /// <summary>CSS TimelineScope value vocabulary.</summary>
     module ``TimelineScope`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>
@@ -70329,6 +70345,14 @@ module CssValue =
         let ``none``  = Keywords.``none``
         /// <summary>Constructs the CSS slow value and validates its grammar.</summary>
         let ``slow``  = Keywords.``slow``
+    /// <summary>CSS UrlModifier value vocabulary.</summary>
+    module ``UrlModifier`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.identifier false false value in CssGrammar.makeC10364(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 10364 (global.Ranvier.Css.Generated.text canonical))
+    /// <summary>CSS UrlToken value vocabulary.</summary>
+    module ``UrlToken`` =
+        /// <summary>Validates and escapes the CSS token before retaining its grammar identity.</summary>
+        let create (value: string) = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.urlToken value in CssGrammar.makeC10366(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 10366 (global.Ranvier.Css.Generated.text canonical))
     /// <summary>CSS UserSelect value vocabulary.</summary>
     module ``UserSelect`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>
@@ -80619,12 +80643,16 @@ module CssValue =
         module ``Semitones`` =
             /// <summary>Values admitted at this position in the CSS grammar.</summary>
             type Value = CssGrammar.C9410
+            /// <summary>Constructs a finite semitones dimension in st.</summary>
+            let create (value: float) : Value = CssGrammar.makeC9410(global.Ranvier.Css.Internal.GrammarRuntime.number CssGrammar.table 9410 value "st")
             /// <summary>Accepts explicitly unchecked tokens for this CSS grammar.</summary>
             let ``unsafeFromTokens`` (tokens: string) : Value = CssGrammar.makeC9410(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 9410 tokens)
             /// <summary>CSS Value value vocabulary.</summary>
             module ``Value`` =
                 /// <summary>Values admitted at this position in the CSS grammar.</summary>
                 type Value = CssGrammar.C9411
+                /// <summary>Constructs a finite semitones dimension in st.</summary>
+                let create (value: float) : Value = CssGrammar.makeC9411(global.Ranvier.Css.Internal.GrammarRuntime.number CssGrammar.table 9411 value "st")
                 /// <summary>Accepts explicitly unchecked tokens for this CSS grammar.</summary>
                 let ``unsafeFromTokens`` (tokens: string) : Value = CssGrammar.makeC9411(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 9411 tokens)
     /// <summary>CSS VoiceRange value vocabulary.</summary>
@@ -80749,12 +80777,16 @@ module CssValue =
         module ``Decibel`` =
             /// <summary>Values admitted at this position in the CSS grammar.</summary>
             type Value = CssGrammar.C5716
+            /// <summary>Constructs a finite decibel dimension in dB.</summary>
+            let create (value: float) : Value = CssGrammar.makeC5716(global.Ranvier.Css.Internal.GrammarRuntime.number CssGrammar.table 5716 value "dB")
             /// <summary>Accepts explicitly unchecked tokens for this CSS grammar.</summary>
             let ``unsafeFromTokens`` (tokens: string) : Value = CssGrammar.makeC5716(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 5716 tokens)
             /// <summary>CSS Value value vocabulary.</summary>
             module ``Value`` =
                 /// <summary>Values admitted at this position in the CSS grammar.</summary>
                 type Value = CssGrammar.C5717
+                /// <summary>Constructs a finite decibel dimension in dB.</summary>
+                let create (value: float) : Value = CssGrammar.makeC5717(global.Ranvier.Css.Internal.GrammarRuntime.number CssGrammar.table 5717 value "dB")
                 /// <summary>Accepts explicitly unchecked tokens for this CSS grammar.</summary>
                 let ``unsafeFromTokens`` (tokens: string) : Value = CssGrammar.makeC5717(global.Ranvier.Css.Internal.GrammarRuntime.opaque CssGrammar.table 5717 tokens)
         /// <summary>CSS Options value vocabulary.</summary>
@@ -82351,6 +82383,10 @@ module CssValue =
         let ``auto``  = Keywords.``auto``
         /// <summary>Constructs the CSS inherit value and validates its grammar.</summary>
         let ``inherit``  = Keywords.``inherit``
+    /// <summary>CSS Zero value vocabulary.</summary>
+    module ``Zero`` =
+        /// <summary>The unitless zero literal admitted by the CSS zero production.</summary>
+        let value = CssGrammar.makeC10560(global.Ranvier.Css.Internal.GrammarRuntime.number CssGrammar.table 10560 0. "")
     /// <summary>CSS Zoom value vocabulary.</summary>
     module ``Zoom`` =
         /// <summary>Values admitted at this position in the CSS grammar.</summary>

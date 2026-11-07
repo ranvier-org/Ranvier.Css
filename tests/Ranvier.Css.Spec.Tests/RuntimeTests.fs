@@ -49,6 +49,42 @@ let tests =
                         "Hex colors outside the CSS digit counts or alphabet are rejected."
 
                 Expect.throwsT<System.ArgumentNullException> (fun () -> (Generated.hexColor null: Value<unit>) |> ignore) "Null input is rejected."
+            testCase "hash tokens accept identifier code point names and preserve case"
+            <| fun _ ->
+                for input, expected in
+                    [
+                        "#main", "#main"
+                        "Nav-1", "#Nav-1"
+                        "_x", "#_x"
+                        "#1st", "#1st"
+                        "été", "#été"
+                    ] do
+                    let value: Value<unit> = Generated.hashToken input
+                    Expect.equal (Value.render value) expected "A valid hash name is serialized with one number sign."
+
+                for input in [ ""; "#"; "##a"; "a b"; "a.b"; "a(b)"; "a\\b" ] do
+                    Expect.throwsT<System.ArgumentException>
+                        (fun () -> (Generated.hashToken input: Value<unit>) |> ignore)
+                        "Hash names outside the identifier code points are rejected."
+
+                Expect.throwsT<System.ArgumentNullException> (fun () -> (Generated.hashToken null: Value<unit>) |> ignore) "Null input is rejected."
+            testCase "url tokens escape delimiters and whitespace inside an unquoted url()"
+            <| fun _ ->
+                for input, expected in
+                    [
+                        "dot.png", "url(dot.png)"
+                        "https://example.test/a?b=c#d", "url(https://example.test/a?b=c#d)"
+                        "a b(1).png", "url(a\\ b\\(1\\).png)"
+                        "it's\"q\"\\", "url(it\\'s\\\"q\\\"\\\\)"
+                        "a\nb\tc", "url(a\\a b\\9 c)"
+                    ] do
+                    let value: Value<unit> = Generated.urlToken input
+                    Expect.equal (Value.render value) expected "A URL is serialized as one url token."
+
+                for input in [ null; ""; "a\u0000b" ] do
+                    Expect.throwsT<System.ArgumentException>
+                        (fun () -> (Generated.urlToken input: Value<unit>) |> ignore)
+                        "Empty URLs and U+0000 are rejected."
             testCase "generated dynamic slots use their spec-derived keyword registry"
             <| fun _ ->
                 let style =

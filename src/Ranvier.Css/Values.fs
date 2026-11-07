@@ -255,6 +255,62 @@ module Generated =
 
         value ("#" + digits)
 
+    /// <summary>Validates a CSS hash token whose name is an unescaped run of identifier code points, with or without its leading number sign.</summary>
+    /// <remarks>Name case is preserved; the serialized token always starts with <c>#</c>.</remarks>
+    let hashToken (input: string) : Value<'tag> =
+        if isNull input then
+            nullArg "input"
+
+        let name =
+            if input.StartsWith ("#", StringComparison.Ordinal) then
+                input.Substring 1
+            else
+                input
+
+        if
+            name.Length = 0
+            || not (
+                name
+                |> Seq.forall (fun c ->
+                    (c >= 'a' && c <= 'z')
+                    || (c >= 'A' && c <= 'Z')
+                    || (c >= '0' && c <= '9')
+                    || c = '_'
+                    || c = '-'
+                    || c >= '\u0080')
+            )
+        then
+            invalidArg "input" "Expected a CSS hash name of identifier code points."
+
+        value ("#" + name)
+
+    /// <summary>Serializes a URL as an unquoted CSS <c>url()</c> token.</summary>
+    /// <remarks>
+    /// Parentheses, quotes, backslashes and spaces are backslash-escaped; control characters are hex-escaped.
+    /// Empty input and U+0000 are rejected.
+    /// </remarks>
+    let urlToken (input: string) : Value<'tag> =
+        if String.IsNullOrEmpty input then
+            invalidArg "input" "Expected a nonempty URL."
+
+        let escaped = Text.StringBuilder ()
+
+        for c in input do
+            match c with
+            | '\u0000' -> invalidArg "input" "A URL token cannot contain U+0000."
+            | '('
+            | ')'
+            | '"'
+            | '\''
+            | '\\'
+            | ' ' -> escaped.Append('\\').Append c |> ignore
+            | c when c < ' ' || int c = 0x7f ->
+                escaped.Append('\\').Append(sprintf "%x" (int c)).Append ' '
+                |> ignore
+            | c -> escaped.Append c |> ignore
+
+        value ("url(" + string escaped + ")")
+
     /// <summary>Joins nonempty grammar components with their source separators.</summary>
     let sequence (parts: (string * string) list) : Value<'tag> =
         let mutable result = ""
