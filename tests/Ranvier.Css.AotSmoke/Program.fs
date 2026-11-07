@@ -47,6 +47,18 @@ let main args =
     emit "grammar-table" (GrammarRuntime.Table.create [| node |])
     emit "grammar-value" (GrammarRuntime.token "a\"b")
 
+    emit "grammar-parameter" (GrammarRuntime.Repeated (3, [| GrammarRuntime.Required (1, "from"); GrammarRuntime.Optional (2, "") |]))
+
+    emit
+        "grammar-argument"
+        (GrammarRuntime.Items
+            [
+                [|
+                    GrammarRuntime.Supplied (GrammarRuntime.token "red")
+                    GrammarRuntime.Omitted
+                |]
+            ])
+
     emit
         "grammar-null-fields"
         { node with

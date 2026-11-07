@@ -45,6 +45,31 @@ let private compactCatalogue () =
     |> Result.toOption
     |> Option.defaultWith (fun () -> failtest "The compact generation fixture must be valid.")
 
+let private colorCatalogue (lightDark: string) =
+    let json =
+        """{"properties":[
+            {"name":"all","href":"https://example.test/all","syntax":"initial | inherit | unset | revert | revert-layer | revert-rule"},
+            {"name":"color","href":"https://example.test/color-property","syntax":"<color>"},
+            {"name":"background-color","href":"https://example.test/background-color","syntax":"<color>"}
+        ],"types":[
+            {"name":"color","href":"https://example.test/color","syntax":"<named-color> | <hex-color> | <rgb()> | <light-dark()> | <twin()> | <unordered()> | <color()> | currentcolor"},
+            {"name":"named-color","href":"https://example.test/named-color","syntax":"red | blue"},
+            {"name":"hex-color","href":"https://example.test/hex-color"},
+            {"name":"number","href":"https://example.test/number"},
+            {"name":"percentage","href":"https://example.test/percentage"},
+            {"name":"alpha-value","href":"https://example.test/alpha-value","syntax":"<number> | <percentage>"}
+        ],"functions":[
+            {"name":"rgb()","href":"https://example.test/rgb","syntax":"rgb( [from <color>]? [<number> | <percentage> | none]{3} [ / [<alpha-value> | none] ]? )"},
+            {"name":"light-dark()","href":"https://example.test/light-dark","syntax":"LIGHT_DARK"},
+            {"name":"twin()","href":"https://example.test/twin","syntax":"twin(<color>, <color>)"},
+            {"name":"unordered()","href":"https://example.test/unordered","syntax":"unordered(<number> || <percentage>)"},
+            {"name":"color()","href":"https://example.test/color-function","syntax":"color(<number> [ / <alpha-value> ]?)"}
+        ],"selectors":[],"atrules":[]}"""
+
+    Webref.consume "color-generation" (Encoding.UTF8.GetBytes (json.Replace ("LIGHT_DARK", lightDark)))
+    |> Result.toOption
+    |> Option.defaultWith (fun () -> failtest "The color generation fixture must be valid.")
+
 let private compactOutput input =
     RuntimeGeneration.generate "Example.Compact" input
     |> Result.toOption
@@ -286,6 +311,115 @@ let private compactCases =
                     (Ranvier.Css.Internal.GrammarRuntime.admit table background value).Text
                     "red"
                     "The property and palette share runtime admission."
+
+            testCase "color functions admitted by color generate flattened constructors and Css aliases"
+            <| fun _ ->
+                let output = compactOutput (colorCatalogue "light-dark(<color>, <color>)")
+                use manifest = JsonDocument.Parse output.Manifest
+
+                let factories =
+                    manifest.RootElement.GetProperty("factories").EnumerateArray()
+                    |> Seq.map (fun factory ->
+                        (factory.GetProperty("owner").GetString(), factory.GetProperty("memberName").GetString()),
+                        (factory.GetProperty("kind").GetString(), factory.GetProperty("production").GetString()))
+                    |> Map.ofSeq
+
+                for owner in [ "Example.Compact.CssValue.Color"; "Example.Compact.Css" ] do
+                    for memberName, production in [ "rgb", "rgb"; "lightDark", "light-dark"; "twin", "twin" ] do
+                        Expect.equal
+                            (Map.tryFind (owner, memberName) factories)
+                            (Some ("assemble", production))
+                            "Flattened color constructors retain their function production for static extraction."
+
+                for owner, memberName in
+                    [
+                        "Example.Compact.CssValue.Color", "hex"
+                        "Example.Compact.CssValue.HexColor", "create"
+                        "Example.Compact.CssValue", "hex"
+                        "Example.Compact.Css", "hex"
+                    ] do
+                    Expect.equal
+                        (Map.tryFind (owner, memberName) factories)
+                        (Some ("hexColor", "hex-color"))
+                        "The prose hex-color primitive has a validated constructor and aliases."
+
+                Expect.equal
+                    (Map.tryFind ("Example.Compact.CssValue.Color", "color") factories)
+                    (Some ("assemble", "color"))
+                    "A color function sharing a property name stays on CssValue.Color."
+
+                Expect.isNone (Map.tryFind ("Example.Compact.Css", "color") factories) "A Css alias never replaces a property sink."
+
+                Expect.isNone (Map.tryFind ("Example.Compact.CssValue.Color", "unordered") factories) "Unordered groups are not flattened."
+
+                Expect.stringContains output.Source "let ``rgb`` (``red``: " "Channel names come from the explicit naming policy."
+
+                Expect.stringContains output.Source " (``from``: " "Keyword groups name their parameter."
+                Expect.stringContains output.Source "?``from``: " "Css aliases make optional groups optional arguments."
+                Expect.stringContains output.Source "?``alpha``: " "The -value suffix is removed from alpha-value."
+                Expect.stringContains output.Source "let ``lightDark`` (``light``: " "Policy names replace repeated color slots."
+                Expect.stringContains output.Source "let ``twin`` (``color``: " "Unnamed repeated slots keep positional names."
+                Expect.stringContains output.Source " (``color2``: " "Repeated derived names receive suffixes."
+                Expect.stringContains output.Source ".assemble CssGrammar.table " "Constructors share the runtime assembly kernel."
+
+                let issues =
+                    manifest.RootElement.GetProperty("ownerIssues").EnumerateArray()
+                    |> Seq.map (fun issue -> issue.GetProperty("memberName").GetString(), issue.GetProperty("message").GetString())
+                    |> Seq.toList
+
+                for memberName, fragment in
+                    [
+                        "twin", "positional suffixes"
+                        "unordered", "can be flattened into named parameters"
+                        "color", "Css alias is omitted"
+                    ] do
+                    Expect.isTrue
+                        (issues
+                         |> List.exists (fun (name, message) -> name = memberName && message.Contains fragment))
+                        "Color naming and coverage limits remain explicit manifest diagnostics."
+
+                let table =
+                    Ranvier.Css.Internal.GrammarRuntime.Table.decode (manifest.RootElement.GetProperty("encodedGrammar").GetString())
+
+                let rgb =
+                    manifest.RootElement.GetProperty("factories").EnumerateArray()
+                    |> Seq.find (fun factory ->
+                        factory.GetProperty("owner").GetString() = "Example.Compact.Css"
+                        && factory.GetProperty("memberName").GetString() = "rgb")
+                    |> fun factory -> factory.GetProperty("nodeId").GetInt32()
+
+                let parameters =
+                    Ranvier.Css.Internal.GrammarRuntime.tryParameters table rgb
+                    |> Option.defaultWith (fun () -> failtest "The rgb production must flatten.")
+
+                let n magnitude =
+                    match parameters[0] with
+                    | Ranvier.Css.Internal.GrammarRuntime.Required (id, _) ->
+                        Ranvier.Css.Internal.GrammarRuntime.Supplied (Ranvier.Css.Internal.GrammarRuntime.number table id magnitude "")
+                    | _ -> failtest "Channels are required."
+
+                Expect.equal
+                    (Ranvier.Css.Internal.GrammarRuntime.assemble
+                        table
+                        rgb
+                        [|
+                            n 1.
+                            n 2.
+                            n 3.
+                            Ranvier.Css.Internal.GrammarRuntime.Omitted
+                            Ranvier.Css.Internal.GrammarRuntime.Supplied (Ranvier.Css.Internal.GrammarRuntime.token "none")
+                        |])
+                        .Text
+                    "rgb(1 2 3 / none)"
+                    "The manifest's grammar assembles the same value as generated source."
+
+            testCase "color naming policies must match the grammar"
+            <| fun _ ->
+                Expect.throwsT<InvalidOperationException>
+                    (fun () ->
+                        compactOutput (colorCatalogue "light-dark(<color>, <color>, <color>)")
+                        |> ignore)
+                    "A policy whose arity no longer matches the specification fails generation."
         ]
 
 

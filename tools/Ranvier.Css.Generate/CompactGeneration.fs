@@ -4,6 +4,7 @@ open System
 open System.Collections.Generic
 open System.Text
 open System.Text.Json
+open Ranvier.Css.Internal
 
 type internal CompactBindings = { Source: string; Manifest: string }
 
@@ -59,6 +60,8 @@ module internal CompactGeneration =
         let owners, issues =
             CompactOwnerGeneration.planWithIssues catalogue resolution graph
 
+        let colorPlan = CompactColorGeneration.plan graph
+        let colorIssues = ResizeArray<CompactOwnerIssue> colorPlan.Issues
         let projected = PublicApiProjection.project catalogue resolution
 
         let wideKeywords =
@@ -89,6 +92,8 @@ module internal CompactGeneration =
 
                 for feature in projected do
                     yield graph.Roots[feature.Id]
+
+                yield! CompactColorGeneration.referencedNodes colorPlan
             }
 
         let exactCategories = CompactCategoryGeneration.plan graph requested
@@ -530,6 +535,204 @@ module internal CompactGeneration =
 
                         keywordAliases.Add (location, memberName, node.Id))
 
+        let colorFactories = ResizeArray<PrimitiveFactory>()
+        let colorMembers = ResizeArray<ColorFunction * string list * string list>()
+        let colorLocation = [ "Color" ]
+
+        let colorMember (memberName: string) id =
+            if
+                primitiveNames.Contains (colorLocation, memberName)
+                || not (emitted.Add (colorLocation, memberName))
+            then
+                colorIssues.Add
+                    {
+                        NodeId = id
+                        Path = colorLocation
+                        Member = memberName
+                        Message = "A color constructor name is already used by another CssValue.Color member; the constructor is omitted."
+                    }
+
+                false
+            else
+                true
+
+        let colorFactory owner memberName id kind production argumentType =
+            colorFactories.Add
+                {
+                    Owner = owner
+                    MemberName = memberName
+                    NodeId = id
+                    Kind = kind
+                    Production = production
+                    UnitName = ""
+                    ArgumentType = argumentType
+                }
+
+        match colorPlan.ColorRoot, colorPlan.HexColor with
+        | Some _, Some hex when colorMember "hex" hex ->
+            append colorLocation (summary "Validates a CSS hex color of 3, 4, 6 or 8 digits; the leading number sign is optional.")
+
+            append
+                colorLocation
+                ("let hex (value: string) : "
+                 + valueType hex
+                 + " = let canonical: global.Ranvier.Css.Value<obj> = global.Ranvier.Css.Generated.hexColor value in "
+                 + wrap
+                     hex
+                     (runtime
+                      + ".opaque CssGrammar.table "
+                      + string hex
+                      + " (global.Ranvier.Css.Generated.text canonical)"))
+
+            colorFactory ("CssValue" :: colorLocation) "hex" hex "hexColor" "hex-color" "string"
+        | _ -> ()
+
+        let colorParameterType qualify (parameter: GrammarRuntime.Parameter) =
+            match parameter with
+            | GrammarRuntime.Required (id, _) -> qualify (valueType id)
+            | GrammarRuntime.Optional (id, _) -> qualify (valueType id) + " option"
+            | GrammarRuntime.Repeated _ -> invalidOp "Nested repeated color parameters are unsupported."
+
+        let colorArgument name (parameter: GrammarRuntime.Parameter) =
+            match parameter with
+            | GrammarRuntime.Required _ ->
+                runtime
+                + ".Argument.Supplied "
+                + data (ident name)
+            | GrammarRuntime.Optional _ ->
+                runtime
+                + ".optional ("
+                + ident name
+                + " |> Option.map (fun value -> "
+                + data "value"
+                + "))"
+            | GrammarRuntime.Repeated _ -> invalidOp "Nested repeated color parameters are unsupported."
+
+        // Returns a parameter's name, its declared type and whether a static member may omit it.
+        let colorSignature qualify (parameter: ColorParameter) =
+            match parameter.Parameter with
+            | GrammarRuntime.Repeated _ ->
+                let item =
+                    match parameter.Items with
+                    | [ _, single ] -> colorParameterType qualify single
+                    | items ->
+                        "("
+                        + (items
+                           |> List.map (snd >> colorParameterType qualify)
+                           |> String.concat " * ")
+                        + ")"
+
+                parameter.Name, item + " list", false
+            | GrammarRuntime.Optional (id, _) -> parameter.Name, qualify (valueType id), true
+            | required -> parameter.Name, colorParameterType qualify required, false
+
+        let colorItemArguments (parameter: ColorParameter) =
+            let names =
+                parameter.Items
+                |> List.map (fun (name, _) ->
+                    "item"
+                    + string (Char.ToUpperInvariant name[0])
+                    + name.Substring 1)
+
+            let pattern =
+                match names with
+                | [ single ] -> ident single
+                | names ->
+                    "("
+                    + (names |> List.map ident |> String.concat ", ")
+                    + ")"
+
+            runtime
+            + ".Argument.Items ("
+            + ident parameter.Name
+            + " |> List.map (fun "
+            + pattern
+            + " -> [| "
+            + (List.zip names parameter.Items
+               |> List.map (fun (name, (_, item)) -> colorArgument name item)
+               |> String.concat "; ")
+            + " |]))"
+
+        let insideCssValue (typeName: string) = typeName
+
+        let outsideCssValue (typeName: string) =
+            if typeName.StartsWith ("Categories.", StringComparison.Ordinal) then
+                "CssValue." + typeName
+            else
+                typeName
+
+        for colorFunction in colorPlan.Functions do
+            if colorMember colorFunction.MemberName colorFunction.NodeId then
+                let parameters =
+                    colorFunction.Parameters
+                    |> List.map (fun parameter ->
+                        let name, parameterType, optional = colorSignature insideCssValue parameter
+
+                        "("
+                        + ident name
+                        + ": "
+                        + parameterType
+                        + (if optional then " option" else "")
+                        + ")")
+
+                let arguments =
+                    colorFunction.Parameters
+                    |> List.map (fun parameter ->
+                        match parameter.Parameter with
+                        | GrammarRuntime.Repeated _ -> colorItemArguments parameter
+                        | other -> colorArgument parameter.Name other)
+
+                append
+                    colorLocation
+                    (summary (
+                        "Constructs the CSS "
+                        + colorFunction.FunctionName
+                        + "() color function from grammar-derived parameters and validates its grammar."
+                    ))
+
+                append
+                    colorLocation
+                    ("let "
+                     + ident colorFunction.MemberName
+                     + " "
+                     + String.concat " " parameters
+                     + " : "
+                     + valueType colorFunction.NodeId
+                     + " = "
+                     + wrap
+                         colorFunction.NodeId
+                         (runtime
+                          + ".assemble CssGrammar.table "
+                          + string colorFunction.NodeId
+                          + " [| "
+                          + String.concat "; " arguments
+                          + " |]"))
+
+                colorFactory
+                    ("CssValue" :: colorLocation)
+                    colorFunction.MemberName
+                    colorFunction.NodeId
+                    "assemble"
+                    colorFunction.FunctionName
+                    "parameters"
+
+                let memberParameters =
+                    colorFunction.Parameters
+                    |> List.map (fun parameter ->
+                        let name, parameterType, optional = colorSignature outsideCssValue parameter
+
+                        (if optional then "?" else "")
+                        + ident name
+                        + ": "
+                        + parameterType)
+
+                colorMembers.Add (
+                    colorFunction,
+                    memberParameters,
+                    colorFunction.Parameters
+                    |> List.map (fun parameter -> ident parameter.Name)
+                )
+
         let cssWide = Set.toList wideKeywords
         let source = StringBuilder (storage.Source)
 
@@ -693,6 +896,67 @@ module internal CompactGeneration =
                 + (if constant then "" else " value")
             )
 
+        let cssMemberNames =
+            set
+                [
+                    "variable"
+                    yield! primitives.Aliases |> List.map fst
+                    yield!
+                        Text.RegularExpressions.Regex.Matches (mathematics.CssMembers, @"static member\s+(?:``([^`]+)``|([A-Za-z_][A-Za-z0-9_']*))")
+                        |> Seq.map (fun matched ->
+                            if matched.Groups[1].Success then
+                                matched.Groups[1].Value
+                            else
+                                matched.Groups[2].Value)
+                    for feature in projected do
+                        yield!
+                            feature.DeclarationPath
+                            |> Option.map List.last
+                            |> Option.toList
+                ]
+
+        for colorFunction, parameters, arguments in colorMembers do
+            if Set.contains colorFunction.MemberName cssMemberNames then
+                colorIssues.Add
+                    {
+                        NodeId = colorFunction.NodeId
+                        Path = [ "Css" ]
+                        Member = colorFunction.MemberName
+                        Message = "The Css alias is omitted because another Css member uses this name; use the CssValue.Color constructor."
+                    }
+            else
+                line (
+                    "    "
+                    + summary (
+                        "Constructs the CSS "
+                        + colorFunction.FunctionName
+                        + "() color function; omitted optional arguments omit their grammar groups."
+                    )
+                )
+
+                let publicType =
+                    let categoryType = valueType colorFunction.NodeId
+
+                    if categoryType.StartsWith ("Categories.", StringComparison.Ordinal) then
+                        "CssValue." + categoryType
+                    else
+                        categoryType
+
+                line (
+                    "    static member "
+                    + ident colorFunction.MemberName
+                    + " ("
+                    + String.concat ", " parameters
+                    + ") : "
+                    + publicType
+                    + " = CssValue.Color."
+                    + ident colorFunction.MemberName
+                    + " "
+                    + String.concat " " arguments
+                )
+
+                colorFactory [ "Css" ] colorFunction.MemberName colorFunction.NodeId "assemble" colorFunction.FunctionName "parameters"
+
         for feature in projected do
             match feature.DeclarationPath with
             | None -> ()
@@ -844,7 +1108,7 @@ module internal CompactGeneration =
                                     |> List.map (fun (index, name) -> {| index = index; name = name |})
                             |})
                     factories =
-                        (primitives.Factories
+                        (primitives.Factories @ List.ofSeq colorFactories
                          |> List.map (fun factory ->
                              {|
                                  owner =
@@ -925,7 +1189,7 @@ module internal CompactGeneration =
                                     | GrammarStatus.Missing -> ""
                             |})
                     ownerIssues =
-                        issues
+                        issues @ List.ofSeq colorIssues
                         |> List.map (fun issue ->
                             {|
                                 nodeId = issue.NodeId

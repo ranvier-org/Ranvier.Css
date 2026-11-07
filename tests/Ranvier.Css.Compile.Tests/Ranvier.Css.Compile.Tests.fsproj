@@ -8,6 +8,7 @@
     <PackageReference Include="YoloDev.Expecto.TestSdk" Version="0.15.5" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
     <ProjectReference Include="../../tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" />
+    <ProjectReference Include="../../src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj" />
     <Compile Include="Tests.fs" />
   </ItemGroup>
   <Target Name="BuildExtractionFixtures" BeforeTargets="Build">

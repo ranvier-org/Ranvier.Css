@@ -17,6 +17,38 @@ let tests =
                 for text in [ "12px"; "calc(2px + 3px)"; "var(--gap)"; "auto" ] do
                     let value: Value<unit> = Value.unsafeFromTokens text
                     Expect.isNone (RuntimeApi.tryNumericValue value) "Text has no numeric-token provenance"
+            testCase "hex colors accept every specified digit count and preserve digit case"
+            <| fun _ ->
+                for input, expected in
+                    [
+                        "#fff", "#fff"
+                        "fff", "#fff"
+                        "#FFFA", "#FFFA"
+                        "#663399", "#663399"
+                        "aBcDeF", "#aBcDeF"
+                        "#ff000080", "#ff000080"
+                    ] do
+                    let value: Value<unit> = Generated.hexColor input
+                    Expect.equal (Value.render value) expected "A valid hex color is serialized with one number sign."
+
+                for input in
+                    [
+                        ""
+                        "#"
+                        "#ff"
+                        "#fffff"
+                        "#fffffff"
+                        "#fffffffff"
+                        "#ggg"
+                        "##fff"
+                        "#ff 00 00"
+                        "#-ff"
+                    ] do
+                    Expect.throwsT<System.ArgumentException>
+                        (fun () -> (Generated.hexColor input: Value<unit>) |> ignore)
+                        "Hex colors outside the CSS digit counts or alphabet are rejected."
+
+                Expect.throwsT<System.ArgumentNullException> (fun () -> (Generated.hexColor null: Value<unit>) |> ignore) "Null input is rejected."
             testCase "generated dynamic slots use their spec-derived keyword registry"
             <| fun _ ->
                 let style =

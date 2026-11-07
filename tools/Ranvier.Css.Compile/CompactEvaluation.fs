@@ -162,6 +162,35 @@ module internal CompactEvaluation =
 
         GrammarRuntime.construct registry.Table factory.NodeId components
 
+    /// <summary>Converts source arguments to the runtime kernel's flattened parameter order.</summary>
+    let private assemble (registry: CompactMetadata.Registry) (factory: CompactMetadata.Factory) arguments =
+        let parameters =
+            GrammarRuntime.tryParameters registry.Table factory.NodeId
+            |> Option.defaultWith (fun () -> fail "The flattened factory production has no parameter template.")
+
+        let rec convert (parameter: GrammarRuntime.Parameter) input =
+            match parameter, input with
+            | GrammarRuntime.Optional _, (Input.Omitted | Input.Scalar null) -> GrammarRuntime.Omitted
+            | GrammarRuntime.Optional _, Input.Optional inner
+            | GrammarRuntime.Optional _, inner
+            | GrammarRuntime.Required _, inner -> GrammarRuntime.Supplied (value inner)
+            | GrammarRuntime.Repeated (_, items), Input.Items values ->
+                values
+                |> List.map (fun item ->
+                    match items, item with
+                    | [| single |], _ -> [| convert single item |]
+                    | _, Input.Tuple parts when parts.Length = items.Length -> Array.map2 convert items (List.toArray parts)
+                    | _ -> fail "A flattened list item requires one value for each item parameter.")
+                |> GrammarRuntime.Items
+            | GrammarRuntime.Repeated _, _ -> fail "A flattened list parameter requires a finite list."
+
+        if List.length arguments <> parameters.Length then
+            fail "Flattened factory arity does not match its grammar parameters."
+
+        List.map2 convert (List.ofArray parameters) arguments
+        |> List.toArray
+        |> GrammarRuntime.assemble registry.Table factory.NodeId
+
     let private invokeFactory (registry: CompactMetadata.Registry) (factory: CompactMetadata.Factory) arguments =
         let id = factory.NodeId
 
@@ -193,6 +222,13 @@ module internal CompactEvaluation =
             zeroArguments arguments
             Output.Value (GrammarRuntime.token registry.Nodes[id].Text, None)
         | "construct" -> Output.Value (construct registry factory arguments, None)
+        | "assemble" -> Output.Value (assemble registry factory arguments, None)
+        | "hexcolor" ->
+            single arguments
+            |> scalar
+            |> unbox<string>
+            |> Generated.hexColor
+            |> tokens
         | "admit" ->
             let input = single arguments
 
@@ -683,6 +719,7 @@ module internal CompactEvaluation =
                             "number"
                             "integer"
                             "string"
+                            "hexcolor"
                             "identifier"
                             "customidentifier"
                             "dashedidentifier"

@@ -95,6 +95,96 @@ let private fixture () =
         node 34 3 [| 3; 33 |]
     |]
 
+/// <summary>Color-function shapes: optional keyword groups, fixed channels, slash groups, comma lists and legacy commas.</summary>
+let private colorFixture () =
+    [|
+        { node 0 0 [||] with Text = "number" }
+        { node 1 0 [||] with
+            Text = "percentage"
+        }
+        { node 2 1 [||] with Text = "none" }
+        node 3 3 [| 0; 1; 2 |]
+        { node 4 0 [||] with Text = "color" }
+        { node 5 1 [||] with Text = "from" }
+        { node 6 4 [| 5; 4 |] with
+            Separators = [| ""; " " |]
+        }
+        { node 7 7 [| 6 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        { node 8 1 [||] with Text = "/" }
+        { node 9 4 [| 8; 3 |] with
+            Separators = [| ""; " " |]
+        }
+        { node 10 7 [| 9 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        { node 11 7 [| 3 |] with
+            Minimum = 3
+            Maximum = 3
+        }
+        { node 12 4 [| 7; 11; 10 |] with
+            Separators = [| ""; " "; " " |]
+        }
+        { node 13 9 [| 12 |] with Text = "rgb" }
+        { node 14 7 [| 15 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        { node 15 0 [||] with Text = "method" }
+        { node 16 1 [||] with Text = "," }
+        { node 17 7 [| 18 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        { node 18 2 [||] with
+            Target = 1
+            Text = "percentage"
+            Lower = Some (0., "%")
+            Upper = Some (100., "%")
+        }
+        node 19 5 [| 4; 17 |]
+        { node 20 7 [| 19 |] with
+            Minimum = 1
+            Maximum = -1
+            CommaSeparated = true
+        }
+        { node 21 4 [| 14; 16; 20 |] with
+            Separators = [| ""; ""; " " |]
+        }
+        { node 22 9 [| 21 |] with Text = "mix" }
+        { node 23 4 [| 0; 16; 0; 16; 24 |] with
+            Separators = [| ""; ""; " "; ""; " " |]
+        }
+        { node 24 7 [| 0 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        node 25 6 [| 0; 1 |]
+        { node 26 9 [| 25 |] with
+            Text = "unordered"
+        }
+        { node 27 7 [| 24 |] with
+            Minimum = 0
+            Maximum = 1
+        }
+        { node 28 9 [| 27 |] with
+            Text = "nested"
+        }
+        { node 29 4 [| 0; 16; 24; 16; 0 |] with
+            Separators = [| ""; ""; " "; ""; " " |]
+        }
+        node 30 4 [| 16; 0 |]
+        { node 31 9 [| 30 |] with
+            Text = "leading"
+        }
+        { node 32 4 [| 0; 16; 0 |] with
+            Separators = [| ""; " "; "" |]
+        }
+    |]
+
 let private rejects action =
     Expect.throwsT<ArgumentException> action "Invalid construction must retain its runtime guard."
 
@@ -310,4 +400,154 @@ let tests =
                     (construct table 6 [| Some (token "auto"); Some length |]).Text
                     "auto 42px"
                     "Caller mutations cannot change checked grammar."
+
+            testCase "sequence commas beside omitted components follow CSS comma omission"
+            <| fun _ ->
+                let table = Table.create (colorFixture ())
+
+                let n magnitude =
+                    Some (number table 0 magnitude "")
+
+                let comma = Some (token ",")
+
+                Expect.equal
+                    (construct table 23 [| n 1.; comma; n 2.; comma; None |]).Text
+                    "1, 2"
+                    "A trailing comma is omitted when every following component is omitted."
+
+                Expect.equal
+                    (construct table 23 [| n 1.; comma; n 2.; comma; Some (construct table 24 [| n 0.5 |]) |]).Text
+                    "1, 2, 0.5"
+                    "Commas between present components are retained."
+
+                Expect.equal
+                    (construct table 29 [| n 1.; comma; None; comma; n 3. |]).Text
+                    "1, 3"
+                    "Commas made adjacent by an omitted component collapse to one."
+
+                Expect.equal
+                    (construct table 31 [| Some (construct table 30 [| comma; n 1. |]) |]).Text
+                    "leading(1)"
+                    "A comma with every preceding component omitted is removed."
+
+                Expect.equal
+                    (construct table 32 [| n 1.; comma; n 2. |]).Text
+                    "1, 2"
+                    "Commas serialize canonically regardless of specification whitespace."
+
+                let item = construct table 19 [| Some (opaque table 4 "red"); None |]
+
+                Expect.equal
+                    (construct table 21 [| None; comma; Some (construct table 20 [| Some item |]) |]).Text
+                    "red"
+                    "An omitted optional prefix omits its following comma."
+
+            testCase "flattened parameters order required and repeated values before optional groups"
+            <| fun _ ->
+                let table = Table.create (colorFixture ())
+
+                Expect.equal
+                    (tryParameters table 13)
+                    (Some
+                        [|
+                            Required (3, "")
+                            Required (3, "")
+                            Required (3, "")
+                            Optional (4, "from")
+                            Optional (3, "")
+                        |])
+                    "Fixed repetitions expand, keyword groups retain their keyword, and optional groups follow required values."
+
+                Expect.equal
+                    (tryParameters table 22)
+                    (Some
+                        [|
+                            Repeated (20, [| Required (4, ""); Optional (18, "") |])
+                            Optional (15, "")
+                        |])
+                    "Comma lists become one repeated parameter whose items keep the same ordering policy."
+
+                Expect.isNone (tryParameters table 26) "Unordered groups require structural constructors."
+                Expect.isNone (tryParameters table 28) "Nested optional groups cannot be represented by one optional parameter."
+
+            testCase "assembled functions insert literals, omit optional groups and validate every value"
+            <| fun _ ->
+                let table = Table.create (colorFixture ())
+
+                let n magnitude =
+                    Supplied (number table 0 magnitude "")
+
+                let percent magnitude =
+                    Supplied (number table 1 magnitude "%")
+
+                let color name =
+                    Supplied (opaque table 4 name)
+
+                Expect.equal
+                    (assemble table 13 [| n 255.; n 0.; Supplied (token "none"); Omitted; Omitted |]).Text
+                    "rgb(255 0 none)"
+                    "Required channels are space separated."
+
+                Expect.equal
+                    (assemble table 13 [| n 1.; percent 2.; n 3.; color "red"; percent 50. |]).Text
+                    "rgb(from red 1 2% 3 / 50%)"
+                    "Optional groups reinsert their keyword and slash literals."
+
+                Expect.equal
+                    (assemble
+                        table
+                        22
+                        [|
+                            Items [ [| color "red"; percent 40. |]; [| color "blue"; Omitted |] ]
+                            Omitted
+                        |])
+                        .Text
+                    "mix(red 40%, blue)"
+                    "List items retain item optionality and omit the comma after an omitted prefix."
+
+                Expect.equal
+                    (assemble
+                        table
+                        22
+                        [|
+                            Items [ [| color "red"; Omitted |] ]
+                            Supplied (opaque table 15 "in oklch")
+                        |])
+                        .Text
+                    "mix(in oklch, red)"
+                    "A supplied optional prefix retains its comma."
+
+                Expect.equal
+                    (admit table 13 (assemble table 13 [| n 1.; n 2.; n 3.; Omitted; Omitted |])).Text
+                    "rgb(1 2 3)"
+                    "Assembled values carry their function identity for later admission."
+
+                for arguments in
+                    [
+                        [| n 1.; n 2.; n 3.; Omitted |]
+                        [| n 1.; n 2.; n 3.; Omitted; Omitted; Omitted |]
+                        [| n 1.; Omitted; n 3.; Omitted; Omitted |]
+                        [| n 1.; n 2.; Supplied (token "auto"); Omitted; Omitted |]
+                        [| n 1.; n 2.; n 3.; n 4.; Omitted |]
+                        [| n 1.; n 2.; Items []; Omitted; Omitted |]
+                    ] do
+                    rejects (fun () -> assemble table 13 arguments |> ignore)
+
+                for arguments in
+                    [
+                        [| Items []; Omitted |]
+                        [| Items [ [| color "red"; percent 140. |] ]; Omitted |]
+                        [| Items [ [| color "red" |] ]; Omitted |]
+                        [| color "red"; Omitted |]
+                    ] do
+                    rejects (fun () -> assemble table 22 arguments |> ignore)
+
+                rejects (fun () -> assemble table 26 [| n 1. |] |> ignore)
+                Expect.throwsT<ArgumentNullException> (fun () -> assemble table 13 null |> ignore) "Null arguments are rejected."
+
+            testCase "optional argument helper maps absence to omission"
+            <| fun _ ->
+                let value = token "none"
+                Expect.equal (optional (Some value)) (Supplied value) "A present value is supplied."
+                Expect.equal (optional None) Omitted "An absent value is omitted."
         ]

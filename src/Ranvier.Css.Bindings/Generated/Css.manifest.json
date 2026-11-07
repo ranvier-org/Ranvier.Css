@@ -50911,6 +50911,33 @@
     },
     {
       "argumentType": "string",
+      "kind": "hexColor",
+      "memberName": "create",
+      "nodeId": 6457,
+      "owner": "Ranvier.Css.CssValue.HexColor",
+      "production": "hex-color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "hexColor",
+      "memberName": "hex",
+      "nodeId": 6457,
+      "owner": "Ranvier.Css.CssValue",
+      "production": "hex-color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "hexColor",
+      "memberName": "hex",
+      "nodeId": 6457,
+      "owner": "Ranvier.Css.Css",
+      "production": "hex-color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
       "kind": "identifier",
       "memberName": "create",
       "nodeId": 6546,
@@ -52815,6 +52842,330 @@
       "nodeId": 10175,
       "owner": "Ranvier.Css.CssValue.TimePercentage",
       "production": "time-percentage",
+      "unitName": ""
+    },
+    {
+      "argumentType": "string",
+      "kind": "hexColor",
+      "memberName": "hex",
+      "nodeId": 6457,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "hex-color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "alpha",
+      "nodeId": 10572,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "alpha",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "color",
+      "nodeId": 10683,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "color",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "colorHdr",
+      "nodeId": 10881,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "color-hdr",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "colorMix",
+      "nodeId": 10743,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "color-mix",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "deviceCmyk",
+      "nodeId": 7520,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "device-cmyk",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hsl",
+      "nodeId": 7530,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "hsl",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hsla",
+      "nodeId": 7572,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "hsla",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hwb",
+      "nodeId": 10898,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "hwb",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "ictcp",
+      "nodeId": 10943,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "ictcp",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "jzazbz",
+      "nodeId": 11055,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "jzazbz",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "jzczhz",
+      "nodeId": 11079,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "jzczhz",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lab",
+      "nodeId": 11105,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "lab",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lch",
+      "nodeId": 11149,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "lch",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lightDark",
+      "nodeId": 7046,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "light-dark",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "oklab",
+      "nodeId": 11249,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "oklab",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "oklch",
+      "nodeId": 11293,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "oklch",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rgb",
+      "nodeId": 7614,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "rgb",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rgba",
+      "nodeId": 7644,
+      "owner": "Ranvier.Css.CssValue.Color",
+      "production": "rgba",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "alpha",
+      "nodeId": 10572,
+      "owner": "Ranvier.Css.Css",
+      "production": "alpha",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "colorHdr",
+      "nodeId": 10881,
+      "owner": "Ranvier.Css.Css",
+      "production": "color-hdr",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "colorMix",
+      "nodeId": 10743,
+      "owner": "Ranvier.Css.Css",
+      "production": "color-mix",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "deviceCmyk",
+      "nodeId": 7520,
+      "owner": "Ranvier.Css.Css",
+      "production": "device-cmyk",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hsl",
+      "nodeId": 7530,
+      "owner": "Ranvier.Css.Css",
+      "production": "hsl",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hsla",
+      "nodeId": 7572,
+      "owner": "Ranvier.Css.Css",
+      "production": "hsla",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "hwb",
+      "nodeId": 10898,
+      "owner": "Ranvier.Css.Css",
+      "production": "hwb",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "ictcp",
+      "nodeId": 10943,
+      "owner": "Ranvier.Css.Css",
+      "production": "ictcp",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "jzazbz",
+      "nodeId": 11055,
+      "owner": "Ranvier.Css.Css",
+      "production": "jzazbz",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "jzczhz",
+      "nodeId": 11079,
+      "owner": "Ranvier.Css.Css",
+      "production": "jzczhz",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lab",
+      "nodeId": 11105,
+      "owner": "Ranvier.Css.Css",
+      "production": "lab",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lch",
+      "nodeId": 11149,
+      "owner": "Ranvier.Css.Css",
+      "production": "lch",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "lightDark",
+      "nodeId": 7046,
+      "owner": "Ranvier.Css.Css",
+      "production": "light-dark",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "oklab",
+      "nodeId": 11249,
+      "owner": "Ranvier.Css.Css",
+      "production": "oklab",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "oklch",
+      "nodeId": 11293,
+      "owner": "Ranvier.Css.Css",
+      "production": "oklch",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rgb",
+      "nodeId": 7614,
+      "owner": "Ranvier.Css.Css",
+      "production": "rgb",
+      "unitName": ""
+    },
+    {
+      "argumentType": "parameters",
+      "kind": "assemble",
+      "memberName": "rgba",
+      "nodeId": 7644,
+      "owner": "Ranvier.Css.Css",
+      "production": "rgba",
       "unitName": ""
     },
     {
@@ -133944,6 +134295,30 @@
       "message": "Repeated constructor slot has no distinct semantic role; the internal positional role requires explicit naming policy.",
       "nodeId": 13474,
       "path": []
+    },
+    {
+      "memberName": "colorHdr",
+      "message": "Repeated color function parameters have no distinct grammar names; positional suffixes are used until an explicit naming policy is added.",
+      "nodeId": 10881,
+      "path": [
+        "Color"
+      ]
+    },
+    {
+      "memberName": "contrastColor",
+      "message": "No production of this color function can be flattened into named parameters; use its structural constructors under CssValue.Functions.",
+      "nodeId": 10768,
+      "path": [
+        "Color"
+      ]
+    },
+    {
+      "memberName": "color",
+      "message": "The Css alias is omitted because another Css member uses this name; use the CssValue.Color constructor.",
+      "nodeId": 10683,
+      "path": [
+        "Css"
+      ]
     }
   ],
   "owners": [

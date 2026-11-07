@@ -39,6 +39,15 @@ Structured grammar constructors live under `CssValue`, alongside their values. F
 
 Arithmetic and math functions retain unevaluated CSS trees. Finish them with a measured bridge such as `CssValue.Length.calc (Css.px 4. * 2.)` before assigning a property. Use `CssValue.LengthPercentage.calc` for expressions with a length percentage basis, `CssValue.Angle.calc` for angles, and `CssValue.Number.calc` or `CssValue.Integer.calc` for scalar results. These bridges also work in reactive readers. `CssValue.render` returns a typed value's serialized CSS text.
 
+Colors have the same typed constructors as lengths. `Css.hex "#663399"` validates a hex color. Every color function the `<color>` grammar admits has a constructor with named channels:
+
+- `rgb`, `rgba`, `hsl`, `hsla`, `hwb`
+- `lab`, `lch`, `oklab`, `oklch`
+- `colorMix`, `lightDark`, `alpha`, `deviceCmyk`
+- `ictcp`, `jzazbz`, `jzczhz`, `colorHdr`
+
+Examples: `Css.oklch (Css.percent 60., Css.number 0.15, Css.deg 50., alpha = Css.number 0.5)` and `Css.colorMix [ CssValue.Color.red, Some (Css.percent 40.); Css.hex "fff", None ]`. Channels accept the grammar's numbers, percentages, angles or `CssValue.Color.none`. Optional `from` and `alpha` arguments produce relative colors and `/ alpha` groups. The same constructors live on `CssValue.Color` as curried functions taking `option` values; `color()` is only available there, as `CssValue.Color.color`. Results flow into any color property, `CssValue.Border.create`, readers and typed variables. Invalid channels, out-of-range mix percentages and malformed hex digits fail at compile time or construction. The static extractor produces the same CSS without running these calls.
+
 CSS-wide property keywords (`initial`, `inherit`, `unset`, `revert`, `revert-layer`, `revert-rule`) work as static declarations, for example `Css.color Css.initial`. F# reserved keyword names such as `inherit` require double-backtick escaping. For changing CSS-wide values, use `CssView.inlineStyle` with a reader returning these declarations. The sugar deliberately supplies no variable-backed reader overload for these keyword markers: substituting them through a variable changes their cascade meaning. The generated keyword registry comes from the current `all` property specification.
 
 ## Authoring methods

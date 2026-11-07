@@ -485,6 +485,7 @@ module internal CompactPrimitiveGeneration =
                     | "identifier"
                     | "ident-token" -> Some ("ident", "identifier", generated + "identifier false false value")
                     | "custom-ident" -> Some ("customIdent", "customIdentifier", generated + "identifier false true value")
+                    | "hex-color" -> Some ("hex", "hexColor", generated + "hexColor value")
                     | "dashed-ident"
                     | "custom-property-name" -> Some ("dashedIdent", "dashedIdentifier", generated + "identifier true false value")
                     | _ -> None

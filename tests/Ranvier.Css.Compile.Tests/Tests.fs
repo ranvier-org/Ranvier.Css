@@ -1042,6 +1042,180 @@ do failwith "Numeric variable initializers must never execute"
                     match Extractor.extract ExtractionOptions.defaults project with
                     | Ok _ -> failtest "Negative width must fail the generated numeric guard."
                     | Error errors -> Expect.stringContains errors.Head.Message "range" "Canonical numeric guards run."
+            testCase "flattened color constructors match runtime output in every asset mode"
+            <| fun _ ->
+                temporary
+                    """module Fixture
+open Ranvier.Css
+open Ranvier.Css.View
+let brand = Css.oklch (Css.percent 59.69, Css.number 0.156, Css.deg 49.77)
+let channel value = Css.number value
+let example = utility {
+    Css.color (Css.rgb (channel 255., Css.percent 50., CssValue.Color.none, alpha = Css.number 0.5))
+    Css.backgroundColor (CssValue.Color.hsl (Css.deg 120.) (Css.percent 50.) (Css.percent 25.) None None)
+    Css.borderColor (Css.colorMix [ brand, Some (Css.percent 40.); CssValue.Color.white, None ])
+    Css.outlineColor (Css.lightDark (Css.hex "#fff", CssValue.Color.hex "000"))
+    Css.accentColor (Css.oklch (Css.percent 50., Css.number 0.1, Css.deg 30., from = brand))
+    Css.caretColor (Css.alpha (CssValue.Color.red, Css.percent 25.))
+    Css.textDecorationColor (Css.lab (Css.percent 29.2345, Css.number 39.3825, Css.number 20.0664, alpha = CssValue.Color.none))
+    Css.columnRuleColor (CssValue.Color.hwb (Css.number 194.) (Css.percent 0.) (Css.percent 0.) (Some CssValue.Color.red) (Some (Css.percent 50.)))
+    Css.floodColor (Css.deviceCmyk (Css.number 0., Css.number 0.81, Css.number 0.81, Css.number 0.3))
+    Css.stopColor (Css.colorMix ([ Css.rgb (channel 1., channel 2., channel 3.), None ], colorInterpolationMethod = CssValue.Values.ColorInterpolationMethod.create CssValue.Values.ColorSpace.oklch))
+    Css.color (fun (_: bool) -> if true then failwith "Color reader executed during extraction" else Css.hex "#000")
+}
+let view () = styles { example }
+do failwith "Color initializers must never execute during extraction"
+"""
+                <| fun project ->
+                    let brand =
+                        Ranvier.Css.Css.oklch (Ranvier.Css.Css.percent 59.69, Ranvier.Css.Css.number 0.156, Ranvier.Css.Css.deg 49.77)
+
+                    let channel value =
+                        Ranvier.Css.Css.number value
+
+                    let declarations =
+                        [
+                            Ranvier.Css.Css.color (
+                                Ranvier.Css.Css.rgb (
+                                    channel 255.,
+                                    Ranvier.Css.Css.percent 50.,
+                                    Ranvier.Css.CssValue.Color.none,
+                                    alpha = Ranvier.Css.Css.number 0.5
+                                )
+                            )
+                            Ranvier.Css.Css.backgroundColor (
+                                Ranvier.Css.CssValue.Color.hsl
+                                    (Ranvier.Css.Css.deg 120.)
+                                    (Ranvier.Css.Css.percent 50.)
+                                    (Ranvier.Css.Css.percent 25.)
+                                    None
+                                    None
+                            )
+                            Ranvier.Css.Css.borderColor (
+                                Ranvier.Css.Css.colorMix
+                                    [
+                                        brand, Some (Ranvier.Css.Css.percent 40.)
+                                        Ranvier.Css.CssValue.Color.white, None
+                                    ]
+                            )
+                            Ranvier.Css.Css.outlineColor (
+                                Ranvier.Css.Css.lightDark (Ranvier.Css.Css.hex "#fff", Ranvier.Css.CssValue.Color.hex "000")
+                            )
+                            Ranvier.Css.Css.accentColor (
+                                Ranvier.Css.Css.oklch (Ranvier.Css.Css.percent 50., Ranvier.Css.Css.number 0.1, Ranvier.Css.Css.deg 30., from = brand)
+                            )
+                            Ranvier.Css.Css.caretColor (Ranvier.Css.Css.alpha (Ranvier.Css.CssValue.Color.red, Ranvier.Css.Css.percent 25.))
+                            Ranvier.Css.Css.textDecorationColor (
+                                Ranvier.Css.Css.lab (
+                                    Ranvier.Css.Css.percent 29.2345,
+                                    Ranvier.Css.Css.number 39.3825,
+                                    Ranvier.Css.Css.number 20.0664,
+                                    alpha = Ranvier.Css.CssValue.Color.none
+                                )
+                            )
+                            Ranvier.Css.Css.columnRuleColor (
+                                Ranvier.Css.CssValue.Color.hwb
+                                    (Ranvier.Css.Css.number 194.)
+                                    (Ranvier.Css.Css.percent 0.)
+                                    (Ranvier.Css.Css.percent 0.)
+                                    (Some Ranvier.Css.CssValue.Color.red)
+                                    (Some (Ranvier.Css.Css.percent 50.))
+                            )
+                            Ranvier.Css.Css.floodColor (
+                                Ranvier.Css.Css.deviceCmyk (
+                                    Ranvier.Css.Css.number 0.,
+                                    Ranvier.Css.Css.number 0.81,
+                                    Ranvier.Css.Css.number 0.81,
+                                    Ranvier.Css.Css.number 0.3
+                                )
+                            )
+                            Ranvier.Css.Css.stopColor (
+                                Ranvier.Css.Css.colorMix (
+                                    [ Ranvier.Css.Css.rgb (channel 1., channel 2., channel 3.), None ],
+                                    colorInterpolationMethod =
+                                        Ranvier.Css.CssValue.Values.ColorInterpolationMethod.create Ranvier.Css.CssValue.Values.ColorSpace.oklch
+                                )
+                            )
+                        ]
+
+                    Expect.equal
+                        (declarations
+                         |> List.map Ranvier.Css.Declaration.render)
+                        [
+                            "color: rgb(255 50% none / 0.5);"
+                            "background-color: hsl(120deg 50% 25%);"
+                            "border-color: color-mix(oklch(59.69% 0.156 49.77deg) 40%, white);"
+                            "outline-color: light-dark(#fff, #000);"
+                            "accent-color: oklch(from oklch(59.69% 0.156 49.77deg) 50% 0.1 30deg);"
+                            "caret-color: alpha(from red / 25%);"
+                            "text-decoration-color: lab(29.2345% 39.3825 20.0664 / none);"
+                            "column-rule-color: hwb(from red 194 0% 0% / 50%);"
+                            "flood-color: device-cmyk(0 0.81 0.81 0.3);"
+                            "stop-color: color-mix(in oklch, rgb(1 2 3));"
+                        ]
+                        "Runtime constructors serialize the grammar-derived color functions."
+
+                    let expected =
+                        Ranvier.Css.Style.create (
+                            (declarations
+                             |> List.map (fun declaration -> Ranvier.Css.Style.declarations [ declaration ]))
+                            @ [
+                                Ranvier.Css.Style.dynamicWithKeywords
+                                    [ "initial"; "inherit"; "unset"; "revert"; "revert-layer"; "revert-rule" ]
+                                    "color"
+                                    (fun () -> failwith "Runtime comparison must not sample a reader")
+                            ]
+                        )
+
+                    let expectedModule =
+                        {
+                            Name =
+                                "Fixture-"
+                                + Ranvier.Css.Identity.hash "Fixture/Fixture.fs"
+                            Dependencies = []
+                            Rules = []
+                            Styles = [ expected.Definition ]
+                        }
+
+                    for mode in
+                        [
+                            Options.defaults.Mode
+                            OutputMode.SingleFile "app.css"
+                            OutputMode.CssModules
+                        ] do
+                        let assets = { Options.defaults with Mode = mode }
+
+                        let result =
+                            extract
+                                { ExtractionOptions.defaults with
+                                    Assets = assets
+                                }
+                                project
+
+                        match Compiler.compile assets [ expectedModule ] with
+                        | Ok runtime -> Expect.equal result runtime "Extracted color bytes and identities match the runtime constructors."
+                        | Error errors -> failtest (String.concat "\n" errors)
+            testCase "color grammar guards remain enforced during extraction"
+            <| fun _ ->
+                for invalid, fragment in
+                    [
+                        "Css.color (Css.colorMix [ CssValue.Color.red, Some (Css.percent 140.) ])", "range"
+                        "Css.color (Css.colorMix [])", "cardinality"
+                        "Css.color (Css.hex \"#12345\")", "hex color"
+                    ] do
+                    temporary (
+                        "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet invalid = utility { "
+                        + invalid
+                        + " }\nlet view () = styles { invalid }\n"
+                    )
+                    <| fun project ->
+                        match Extractor.extract ExtractionOptions.defaults project with
+                        | Ok _ ->
+                            failtest (
+                                "Invalid color construction must fail extraction: "
+                                + invalid
+                            )
+                        | Error errors -> Expect.stringContains errors.Head.Message fragment "Runtime color guards run during extraction."
             testCase "unbounded recursion is diagnosed"
             <| fun _ ->
                 temporary
