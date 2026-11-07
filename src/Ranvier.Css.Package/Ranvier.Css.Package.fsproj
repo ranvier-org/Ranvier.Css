@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Code-free package: installing Ranvier.Css brings the runtime (Ranvier.Css.Core) and the generated bindings.
+       The version is shared with Ranvier.Css.Core through src/Ranvier.Css/CHANGELOG.md. -->
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
+    <PackageId>Ranvier.Css</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Traced</PackageId>
+    <Version>0.1.1-alpha.3</Version>
+    <Description>Typed CSS values, stylesheets, composable reactive utilities and specification-generated CSS bindings for Ranvier on .NET and Fable.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <FablePackageType>none</FablePackageType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Remove="Fable.Package.SDK" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" />
+    <ProjectReference Include="../Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../Ranvier.Css/README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

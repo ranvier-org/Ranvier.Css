@@ -14,6 +14,7 @@ module Spec =
     let sources = [
         "src/Ranvier.Css/Ranvier.Css.fsproj"
         "src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj"
+        "src/Ranvier.Css.Package/Ranvier.Css.Package.fsproj"
         "src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj"
         "src/Ranvier.Css.View/Ranvier.Css.View.fsproj"
         "src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj"
@@ -211,6 +212,7 @@ module Stage =
     let packTracedDom = stage "pack traced CSS adapter dependency cohort" {
         run "dotnet pack src/Ranvier.Css/Ranvier.Css.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj -c Release -p:RanvierTrace=true -o bin"
+        run "dotnet pack src/Ranvier.Css.Package/Ranvier.Css.Package.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
     }

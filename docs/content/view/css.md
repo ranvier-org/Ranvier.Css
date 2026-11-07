@@ -34,11 +34,12 @@ The CSS libraries target .NET 8 and .NET 10 and include Fable sources. Reference
 generated property bindings and the view adapter:
 
 ```bash
-dotnet add package Ranvier.Css.Bindings --prerelease
+dotnet add package Ranvier.Css --prerelease
 dotnet add package Ranvier.Css.View --prerelease
 ```
 
-`Ranvier.Css` is their portable runtime dependency. `Ranvier.Css.Build` is the separate .NET
+`Ranvier.Css` brings the portable runtime (`Ranvier.Css.Core`) and the generated bindings
+(`Ranvier.Css.Bindings`). `Ranvier.Css.Build` is the separate .NET
 asset compiler library. The view adapter also depends on the view packages; retain the
 [Xantham package source](https://ranvier-org.github.io/Ranvier.View/) required by those packages.
 

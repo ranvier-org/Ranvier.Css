@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net10.0;net8.0</TargetFrameworks>
-    <PackageId>Ranvier.Css</PackageId>
-    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Traced</PackageId>
+    <PackageId>Ranvier.Css.Core</PackageId>
+    <PackageId Condition="'$(RanvierTrace)' == 'true'">Ranvier.Css.Core.Traced</PackageId>
     <Version>0.1.1-alpha.3</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <Description>Typed CSS values, stylesheets and composable reactive utilities for Ranvier on .NET and Fable.</Description>
+    <Description>Runtime for Ranvier.Css: typed CSS values, stylesheets and composable reactive utilities for Ranvier on .NET and Fable. Install Ranvier.Css to also get the generated CSS bindings.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <WarnOn>$(WarnOn);3390</WarnOn>
   </PropertyGroup>

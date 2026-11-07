@@ -8,7 +8,8 @@ The CSS projects, tools and checks were copied from Ranvier. Published Ranvier.V
 
 ## Projects
 
-- `src/Ranvier.Css`: typed values, calculations, stylesheets and composable utilities.
+- `src/Ranvier.Css`: typed values, calculations, stylesheets and composable utilities (package `Ranvier.Css.Core`).
+- `src/Ranvier.Css.Package`: the `Ranvier.Css` package, which depends on `Ranvier.Css.Core` and `Ranvier.Css.Bindings`.
 - `src/Ranvier.Css.Bindings`: generated property/value bindings and their metadata manifest.
 - `src/Ranvier.Css.Build`: deterministic CSS asset compilation.
 - `src/Ranvier.Css.View`: style and utility bindings for Ranvier.View.
