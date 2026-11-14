@@ -135,17 +135,10 @@ module Stage =
             run "npm exec --prefix tools/Ranvier.Css.Generate -- playwright install --with-deps chromium"
         }
     }
-    let compile = input {
-        let! clean = Baked.Stages.cleanWith (InputSpec.ret false) [] [ "src/**/obj/**/*.nuspec" ]
-        return stage "compile browser checks with fickl" {
-            clean
-            stage "fickl" {
-                run "dotnet fickl tests/Ranvier.Css.Browser.Tests/Ranvier.Css.Browser.Tests.fsproj -o tools/Ranvier.Css.Generate/out/browser -c Release --noCache"
-            }
-        }
+    let compile = stage "compile browser checks with fickl" {
+        run "dotnet fickl tests/Ranvier.Css.Browser.Tests/Ranvier.Css.Browser.Tests.fsproj -o tools/Ranvier.Css.Generate/out/browser -c Release --noCache"
     }
     let browser = input {
-        let! compile = compile
         return stage "verify DOM and native Chromium behavior" {
             compile
             stage "jsdom" { run "node tools/Ranvier.Css.Generate/verify-browser.mjs" }

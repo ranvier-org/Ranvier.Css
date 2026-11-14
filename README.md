@@ -57,9 +57,6 @@ rtk dotnet fsi build.fsx -- test --group dotnet
 CI uses package mode and the same Partas.Build commands. Its matrix checks all four groups, formatting and NuGet packages; `CI result` fails if any check fails. The ShipIt and publish workflows run only after the complete CI workflow succeeds.
 
 Pack staging metadata is written under `bin/nuspec`, away from assembly output.
-The browser compile stage removes legacy nuspec files from CSS intermediate
-directories to avoid [Fickl #137](https://github.com/shayanhabibi/fickl/issues/137),
-which also reproduces in upstream Fable 5.24.0.
 
 `tools` restores each pinned tool in a separate SDK process, avoiding the
 [cold-cache tool metadata collision](https://github.com/dotnet/sdk/issues/53783).
