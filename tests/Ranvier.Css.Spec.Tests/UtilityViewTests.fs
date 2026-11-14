@@ -6,7 +6,7 @@ open Ranvier
 open Ranvier.Css
 open Ranvier.Css.View
 open Ranvier.View
-open Ranvier.View.Sugar
+open Ranvier.View.Dsl
 
 let private shared = utility { Declaration.create "display" "grid" }
 
@@ -108,11 +108,9 @@ let tests =
                         |> ignore)
                     "Class merging requires an explicit composable source"
 
-                let attrs = Builders.Attrs<unit>
-
                 Expect.throwsT<ArgumentException>
                     (fun () ->
-                        attrs.composableClass (attrs.attribute ("title", "invalid"))
+                        (Part.composableClass (TemplateParts.attribute "title" "invalid"): Part<Dom.HTMLDivElement, unit>)
                         |> ignore)
                     "Composable class parts reject unrelated attributes"
 
@@ -312,8 +310,8 @@ let tests =
                 let definition =
                     Component.define (fun _ () -> ()) (fun _ ->
                         div () {
-                            input (Array.append [| Builders.Attrs<unit>.attribute("class", "manual") |] (styles { shared }))
-                            img (Array.append (styles { shared }) [| Builders.Attrs<unit>.attribute("class", "manual") |])
+                            input (Array.append [| input.attribute ("class", "manual") |] (styles { shared }))
+                            img (Array.append (styles { shared }) [| img.attribute ("class", "manual") |])
                         })
 
                 let html = Server.render Server.Options.defaults definition ()

@@ -15,7 +15,7 @@ Define viewport conditions once and reuse them for text, width or whole composit
 open Ranvier.Css
 open Ranvier.Css.View
 open Ranvier.View
-open Ranvier.View.Sugar
+open Ranvier.View.Dsl
 
 let sm = minViewportWidth (Css.rem 40.)
 let md = minViewportWidth (Css.rem 48.)
@@ -109,7 +109,7 @@ let cardComponent =
             Width = Api.createSignal initialWidth
         })
         (fun _ ->
-            div (Array.append [| Attrs.attribute ("class", "user-card") |] (styles { liveCard })) {
+            div (Array.append [| div.attribute ("class", "user-card") |] (styles { liveCard })) {
                 "Responsive composite utilities"
             })
 ```

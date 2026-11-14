@@ -7,6 +7,7 @@
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Typed CSS utility attributes and reactive style bindings for Ranvier.View.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ranvier;css;fsharp;view;reactive</PackageTags>
     <WarnOn>$(WarnOn);3390</WarnOn>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" /><Compile Include="Bindings.fs" /><Compile Include="UtilityBindings.fs" /></ItemGroup>

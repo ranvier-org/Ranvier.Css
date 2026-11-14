@@ -10,7 +10,7 @@ as element attributes. The build compiler emits static stylesheets.
 ```fsharp
 open Ranvier.Css
 open Ranvier.Css.View
-open Ranvier.View.Sugar
+open Ranvier.View.Dsl
 
 let field = utility {
     Css.width (Css.percent 100.)
@@ -35,7 +35,7 @@ generated property bindings and the view adapter:
 
 ```bash
 dotnet add package Ranvier.Css
-dotnet add package Ranvier.Css.View --prerelease
+dotnet add package Ranvier.Css.View
 ```
 
 `Ranvier.Css` brings the portable runtime (`Ranvier.Css.Core`) and the generated bindings
@@ -277,7 +277,7 @@ Combine ordinary attributes and style attributes using the existing array API:
 
 ```fsharp
 // Inside a component's view:
-// div (Array.append [| Attrs.attribute ("class", "card analytics-target") |] (styles { panel })) {
+// div (Array.append [| div.attribute ("class", "card analytics-target") |] (styles { panel })) {
 //     "Both user classes and the generated style class are retained"
 // }
 ```
