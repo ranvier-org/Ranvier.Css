@@ -4,12 +4,11 @@
     <PackageId>Fable.Ranvier.Css.Dom</PackageId>
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Fable.Ranvier.Css.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Css.Dom</AssemblyName>
-    <Version>0.1.0-alpha.1</Version>
+    <Version>0.1.0</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Typed Ranvier.Css declarations compiled against the shared Fable DOM contracts.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <WarnOn>$(WarnOn);3390</WarnOn>
-    <RanvierDomVersion Condition="'$(RanvierDomVersion)' == ''">0.1.0-alpha.11</RanvierDomVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" />
