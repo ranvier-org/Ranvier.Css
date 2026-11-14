@@ -7,6 +7,7 @@
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Runtime for Ranvier.Css: typed CSS values, stylesheets and composable reactive utilities for Ranvier on .NET and Fable. Install Ranvier.Css to also get the generated CSS bindings.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ranvier;css;fsharp;styles;reactive</PackageTags>
     <WarnOn>$(WarnOn);3390</WarnOn>
   </PropertyGroup>
   <ItemGroup>

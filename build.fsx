@@ -213,6 +213,7 @@ module Stage =
         run "dotnet pack src/Ranvier.Css/Ranvier.Css.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Package/Ranvier.Css.Package.fsproj -c Release -p:RanvierTrace=true -o bin"
+        run "dotnet pack src/Ranvier.Css.Build/Ranvier.Css.Build.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
         run "dotnet pack src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj -c Release -p:RanvierTrace=true -o bin"
     }

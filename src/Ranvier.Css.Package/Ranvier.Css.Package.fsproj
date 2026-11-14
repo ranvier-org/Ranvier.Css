@@ -8,6 +8,7 @@
     <Version>0.1.1-alpha.4</Version>
     <Description>Typed CSS values, stylesheets, composable reactive utilities and specification-generated CSS bindings for Ranvier on .NET and Fable.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ranvier;css;fsharp;styles;reactive;typed-css</PackageTags>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
