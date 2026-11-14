@@ -34,7 +34,7 @@ The CSS libraries target .NET 8 and .NET 10 and include Fable sources. Reference
 generated property bindings and the view adapter:
 
 ```bash
-dotnet add package Ranvier.Css --prerelease
+dotnet add package Ranvier.Css
 dotnet add package Ranvier.Css.View --prerelease
 ```
 

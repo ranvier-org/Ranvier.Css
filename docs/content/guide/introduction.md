@@ -6,7 +6,7 @@ order: 1
 ## Installation
 
 ```bash frame="terminal"
-dotnet add package Ranvier.Css --prerelease
+dotnet add package Ranvier.Css
 ```
 
 The `Ranvier.Css` package brings the portable runtime (`Ranvier.Css.Core`) and the generated
@@ -14,7 +14,7 @@ property bindings (`Ranvier.Css.Bindings`). Both support .NET 8, .NET 10 and Fab
 
 For reactive view integration, add `Ranvier.Css.View` version `0.1.1-alpha.1`.
 Static asset compilation uses the separate .NET 10 `Ranvier.Css.Build` package.
-These are preview versions; the API can change before 1.0.
+The view adapter is still a preview version, and every API can change before 1.0.
 
 The View adapter's Xantham dependency requires the public
 [Xantham package feed](https://nuget.cloudsmith.io/shayanhabibi/xantham/v3/index.json).
