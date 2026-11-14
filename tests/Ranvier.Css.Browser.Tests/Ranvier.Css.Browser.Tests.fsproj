@@ -6,5 +6,6 @@
   </ItemGroup>
   <ItemGroup Condition="'$(UseLocalRanvier)' != 'true'">
     <PackageReference Include="Ranvier.View.Dom$(RanvierPackageSuffix)" Version="$(RanvierViewVersion)" />
+    <PackageReference Include="Fable.Ranvier.Dom$(RanvierPackageSuffix)" Version="$(RanvierDomVersion)" />
   </ItemGroup>
 </Project>

@@ -17,9 +17,9 @@ module CssView =
     let inlineStyle (attrs: AttributeBuilder<'instance>) (read: 'instance -> Declaration list) : Part<'native, 'instance> =
         attrs.attribute ("style", fun instance -> Some (Declaration.renderMany (read instance)))
 
-    /// <summary>Combines static class names, component styles and inline declarations into one class and one tracked style part.</summary>
-    /// <remarks>Use this method when composing styles on an element to retain a single writer for each attribute.</remarks>
-    let applyWithInline (attrs: AttributeBuilder<'instance>) extraClasses (styles: Styled<'instance> list) read : Part<'native, 'instance> array =
+    /// <summary>Class and tracked style parts for static class names, component styles and inline declarations.</summary>
+    /// <remarks>The result has one writer for the class attribute and one for the style attribute.</remarks>
+    let partsWithInline extraClasses (styles: Styled<'instance> list) (read: 'instance -> Declaration list) : Part<'native, 'instance> array =
         let classes instance =
             extraClasses
             @ (styles |> List.collect (Style.classNames instance))
@@ -31,22 +31,35 @@ module CssView =
                 styles
                 |> List.exists Style.hasApplicationConditions
             then
-                attrs.composableClass (attrs.attribute ("class", fun instance -> Some (classes instance)))
+                TemplateParts.composableClass (TemplateParts.readAttribute "class" (fun instance -> Some (classes instance)))
             else
-                attrs.composableClass (
-                    attrs.attribute (
-                        "class",
-                        extraClasses
-                        @ (styles |> List.map _.Definition.ClassName)
-                        |> List.distinct
-                        |> String.concat " "
-                    )
+                TemplateParts.composableClass (
+                    TemplateParts.attribute
+                        "class"
+                        (extraClasses
+                         @ (styles |> List.map _.Definition.ClassName)
+                         |> List.distinct
+                         |> String.concat " ")
                 )
-            inlineStyle attrs (fun instance ->
-                (styles
-                 |> List.collect (Style.variableDeclarations instance))
-                @ read instance)
+            TemplateParts.readAttribute "style" (fun instance ->
+                Some (
+                    Declaration.renderMany (
+                        (styles
+                         |> List.collect (Style.variableDeclarations instance))
+                        @ read instance
+                    )
+                ))
         |]
+
+    /// <summary>Class and tracked style parts for one component style, for an element constructor's parts.</summary>
+    /// <remarks>These parts need no attribute builder, so they compose with <c>Ranvier.View.Dsl</c> element constructors.</remarks>
+    let parts (style: Styled<'instance>) : Part<'native, 'instance> array =
+        partsWithInline [] [ style ] (fun _ -> [])
+
+    /// <summary>Combines static class names, component styles and inline declarations into one class and one tracked style part.</summary>
+    /// <remarks>Use this method when composing styles on an element to retain a single writer for each attribute.</remarks>
+    let applyWithInline (_: AttributeBuilder<'instance>) extraClasses (styles: Styled<'instance> list) read : Part<'native, 'instance> array =
+        partsWithInline extraClasses styles read
 
     /// <summary>Applies several component styles while combining their current variables into one tracked attribute.</summary>
     let applyMany attrs styles =

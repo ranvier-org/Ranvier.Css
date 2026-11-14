@@ -4,7 +4,7 @@ open Ranvier
 open Ranvier.Css
 open Ranvier.Css.View
 open Ranvier.View
-open Ranvier.View.Sugar
+open Ranvier.View.Dsl
 
 /// <summary>Per-instance application state; CSS generation never samples these signals.</summary>
 type State =
@@ -68,4 +68,4 @@ let ``component`` =
                 Busy = Api.createSignal false
                 Width = Api.createSignal initialWidth
             })
-        (fun _ -> div (Array.append [| Attrs.attribute ("class", "user-card") |] (styles { card })) { "Responsive composite utilities" })
+        (fun _ -> div (Array.append [| div.attribute ("class", "user-card") |] (styles { card })) { "Responsive composite utilities" })

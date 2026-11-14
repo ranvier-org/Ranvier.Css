@@ -1,14 +1,14 @@
 module Ranvier.Css.BrowserTests
 
 open Fable.Core
-open Fable.Core.TS.Dom
 open Ranvier
 open Ranvier.Css
 open Ranvier.Css.View
+open Ranvier.Dom
 open Ranvier.View
 open Ranvier.View.Dom
 open Ranvier.View.Dom.Scheduling
-open Ranvier.View.Sugar
+open Ranvier.View.Dsl
 
 [<Emit("document.createElement('div')")>]
 let private createHost () : HTMLElement = jsNative
@@ -340,7 +340,7 @@ let run () =
                     div (
                         Array.append
                             [|
-                                Builders.Attrs<UtilityState>.attribute("class", fun state -> Some state.Classes.Value)
+                                div.attribute ("class", fun (state: UtilityState) -> Some state.Classes.Value)
                             |]
                             (styles { application })
                     ) {
