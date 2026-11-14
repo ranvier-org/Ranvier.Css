@@ -1,0 +1,25 @@
+version: 2
+# Declared so Dependabot's proxy allows these hosts: a feed named only in nuget.config is blocked.
+registries:
+  partas-build:
+    type: nuget-feed
+    url: https://nuget.cloudsmith.io/shayanhabibi/shayanhabibi-partas-build/v3/index.json
+  xantham-cloudsmith:
+    type: nuget-feed
+    url: https://nuget.cloudsmith.io/shayanhabibi/xantham/v3/index.json
+
+updates:
+  # Keeps the fickl entry of .config/dotnet-tools.json on the latest release. Dependabot's pull requests
+  # run CI, and dependabot-automerge.yml merges them once the required check passes.
+  - package-ecosystem: nuget
+    directory: "/"
+    registries:
+      - partas-build
+      - xantham-cloudsmith
+    schedule:
+      interval: daily
+    allow:
+      - dependency-name: "fickl"
+    commit-message:
+      prefix: "chore(deps)"
+    open-pull-requests-limit: 1
