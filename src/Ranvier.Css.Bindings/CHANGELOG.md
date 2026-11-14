@@ -1,5 +1,5 @@
 ---
-last_commit_released: 3bc774c054f07dc8ea6dc282438c173e91cead6b
+last_commit_released: 87c566a11897816672927ca9b4e36e682daf37e3
 updaters:
   - xml:
       file: Ranvier.Css.Bindings.fsproj
@@ -7,6 +7,14 @@ updaters:
 ---
 
 # Changelog
+
+## 0.1.1 - 2026-11-14
+
+### 🐞 Bug Fixes
+
+* *(css)* Prepare the runtime, bindings and build packages for the stable 0.1.1 release (#17) ([87c566a](https://github.com/ranvier-org/Ranvier.Css/commit/87c566a11897816672927ca9b4e36e682daf37e3))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/3bc774c054f07dc8ea6dc282438c173e91cead6b..87c566a11897816672927ca9b4e36e682daf37e3)</small></strong>
 
 ## 0.1.1-alpha.2 - 2026-11-07
 
