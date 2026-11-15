@@ -7,9 +7,45 @@ order: 18
 static CSS. It follows source utility dependencies automatically, including source project
 references. There is no manual stylesheet registry.
 
+## Install the extractor
+
+`Ranvier.Css.Compile` is published on NuGet as a .NET tool. Its command is `ranvier-css-compile`.
+It needs the .NET 10 SDK or later on the path.
+
+```bash
+dotnet tool install --global Ranvier.Css.Compile
+```
+
+To pin the version for a repository, use a tool manifest and run the command through `dotnet`:
+
+```bash
+dotnet new tool-manifest
+dotnet tool install Ranvier.Css.Compile
+dotnet ranvier-css-compile --help
+```
+
+Update the tool when you update Ranvier.Css. The tool computes class names with the lowering
+code it ships, so the emitted classes are guaranteed to match the application only when both
+come from the same Ranvier.Css release.
+
 ## Build and extract
 
-From a repository checkout, build the application and its references, then extract:
+Build the application and its references, then extract:
+
+```bash
+dotnet build path/to/App.fsproj -c Release
+ranvier-css-compile --project path/to/App.fsproj --output public/assets --single app.css
+```
+
+The output directory contains `app.css` and `css-manifest.json`. Serve the directory with your
+usual static-file host and link the URLs the manifest lists.
+
+The tool reads the bindings metadata from the `Ranvier.Css.Bindings` package the project
+references (`metadata/Css.manifest.json`). Pass `--manifest` only for custom generated bindings.
+
+### The repository example
+
+From a checkout of the repository, the same program runs without installing:
 
 ```bash
 dotnet build examples/Ranvier.Css.Utilities.Example -c Release
@@ -20,15 +56,9 @@ dotnet run --project tools/Ranvier.Css.Compile -c Release -- \
 dotnet run --project examples/Ranvier.Css.Utilities.Example -c Release
 ```
 
-The output directory contains `app.css`, `css-manifest.json` and the example's `index.html`.
-The server reads the manifest and links its emitted URLs. Serve this directory with your
-usual static-file host. The example renders server HTML; its entry point does not mount a
-browser application.
-
-For an application outside the checkout, use the compiler from this checkout and pass an
-absolute project path. Supply `--manifest` pointing to the metadata matching the application's
-`Ranvier.Css.Bindings` version; the package includes it under `metadata/Css.manifest.json`.
-The compiler is currently a repository tool, not an installed `dotnet` global tool.
+The output directory then also contains the example's `index.html`. The server reads the
+manifest and links its emitted URLs. The example renders server HTML; its entry point does not
+mount a browser application.
 
 ## Choose an output layout
 
@@ -115,6 +145,26 @@ into `whenActive` or a typed property reader. When it reports an unsupported fra
 replace that static construction with supported deterministic source code or compute its
 fixed input outside the extraction path. Raising evaluation limits does not make unsupported
 calls executable. Keep the source location in the diagnostic when tracing a helper's caller.
+
+### A class with no rules
+
+Every call that puts a generated class on an element is extracted: a `styles { ... }`
+application, and `CssView.parts`, `apply`, `applyMany`, `applyWithInline`, `partsWithInline`
+and `className`. Two utilities in one `styles { ... }` get the class of their composition, and
+that class is emitted with the rules of both.
+
+Extraction fails, at the source position of the call, when the class it writes would have no
+rules in the emitted stylesheet:
+
+* The call takes its style from a function parameter or other run-time input. Apply the utility
+  with `styles { ... }` where the utility is known.
+* The application is empty at build time, as in `styles { if false then card }`. Remove it or
+  give it a declaration.
+
+This check covers the stylesheet the tool emits. An application that renders its own stylesheet
+at run time from a list of `Definition` values is outside it: a utility missing from that list,
+or a composition whose class the list does not hold, still produces an unstyled element with no
+message. Use the extracted stylesheet in place of such a list.
 
 Successful extraction establishes that the compiler could lower the supported source to
 CSS. It does not establish that the target browser supports every function, that an external

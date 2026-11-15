@@ -5,11 +5,11 @@ open Ranvier.Css.Build
 open Ranvier.Css.Compile
 
 let private usage =
-    """Ranvier.Css.Compile --project app.fsproj --output public/assets [options]
+    """ranvier-css-compile --project app.fsproj --output public/assets [options]
   --single filename.css  Emit one stylesheet
   --modules              Emit one stylesheet per source module (default)
   --css-modules          Emit CSS Modules with stable global identities
-  --manifest path        Match the generated CSS sugar metadata
+  --manifest path        Bindings metadata (default: the referenced Ranvier.Css.Bindings package)
   --configuration name   MSBuild configuration (default Release)
   --framework name       Select a target framework for multi-targeted projects
   --public-path path     Asset URL prefix (default /assets/)

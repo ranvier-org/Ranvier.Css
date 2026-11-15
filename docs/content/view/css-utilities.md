@@ -133,6 +133,12 @@ from `second` follow those from `first`. Reversing their order reverses the winn
 CSS cascade rules otherwise tie. Repeated declarations, fallback values and importance remain
 ordered rather than being collapsed into a property map.
 
+An application composes the same way. `styles { first; second }` puts one class on the element:
+the class of the composition, which differs from the class of `first` and from the class of
+`second`. The build compiler emits that class with the rules of both utilities. A stylesheet
+rendered by hand from `first.Definition` and `second.Definition` holds neither the class nor its
+rules, so the element stays unstyled.
+
 Put shared definitions at the top level so the build compiler can follow them. Ordinary
 deterministic F# helpers can construct utilities; the compiler supports a bounded subset and
 reports unsupported used expressions. Runtime state belongs in predicates and readers, not

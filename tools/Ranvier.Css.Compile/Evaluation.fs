@@ -89,6 +89,17 @@ module internal Evaluation =
             else
                 symbol.DisplayName
 
+        // The display name of a member named with an F# keyword keeps its backticks.
+        let name =
+            if
+                name.Length > 4
+                && name.StartsWith "``"
+                && name.EndsWith "``"
+            then
+                name.Substring (2, name.Length - 4)
+            else
+                name
+
         if name.StartsWith "get_" then name.Substring 4 else name
 
     let private error (expression: FSharpExpr) message =
@@ -100,13 +111,38 @@ module internal Evaluation =
         | DebugPoint (_, inner) -> strip inner
         | _ -> expression
 
-    let isStyleRoot (expression: FSharpExpr) =
+    /// <summary>The styles input of a call that writes a generated class to an element.</summary>
+    type Application =
+        /// <summary>The call evaluates to the applied fragment.</summary>
+        | Fragment
+        /// <summary>The argument holding one style, utility or style definition.</summary>
+        | Single of FSharpExpr
+        /// <summary>The argument holding a list of styles.</summary>
+        | Several of FSharpExpr
+
+    /// <summary>Classifies a <c>styles { }</c> application or a <c>CssView</c> call that writes a generated class.</summary>
+    /// <returns><c>None</c> for every other expression.</returns>
+    let application (expression: FSharpExpr) =
         match expression with
-        | Call (_, symbol, _, _, _) ->
-            memberName symbol = "Run"
-            && (owner symbol = "Ranvier.Css.StylesBuilder"
-                || owner symbol = "Ranvier.Css.View.StylesBuilder")
-        | _ -> false
+        | Call (_, symbol, _, _, arguments) ->
+            match owner symbol, memberName symbol, arguments with
+            | ("Ranvier.Css.StylesBuilder" | "Ranvier.Css.View.StylesBuilder"), "Run", _ -> Some Fragment
+            | "Ranvier.Css.View.CssView", "parts", [ style ] -> Some (Single style)
+            | "Ranvier.Css.View.CssView", ("apply" | "className"), [ _; style ] -> Some (Single style)
+            | "Ranvier.Css.View.CssView", ("applyMany" | "partsWithInline"), _ :: styles :: _ -> Some (Several styles)
+            | "Ranvier.Css.View.CssView", "applyWithInline", _ :: _ :: styles :: _ -> Some (Several styles)
+            | _ -> None
+        | _ -> None
+
+    let rec private hasDeclarations (rule: Rule) =
+        match rule with
+        | StyleRule (_, declarations, children) ->
+            not declarations.IsEmpty
+            || List.exists hasDeclarations children
+        | GroupRule (_, _, children) -> List.exists hasDeclarations children
+        | DescriptorRule (_, _, declarations) -> not declarations.IsEmpty
+        | StatementRule _
+        | RawRule _ -> true
 
     let definitions (projects: Project.CheckedProject list) =
         let output = Dictionary<string, Definition>(StringComparer.Ordinal)
@@ -945,9 +981,21 @@ module internal Evaluation =
                             create keywords property (fun () -> failwith "A build-time reader must never execute.")
                         ]
                 | "Ranvier.Css.Style", "create", [ children ] -> Nodes (nodes expression children)
-                | "Ranvier.Css.Utility", ("toStyled" | "toStyledReactive"), [ value ] -> value
+                | "Ranvier.Css.Utility", ("toStyled" | "toStyledReactive" | "staticDefinition"), [ value ] -> value
+                | ("Ranvier.Css.Utility" | "Ranvier.Css.Utility`1" | "Ranvier.Css.Styled`1"), "Definition", _ when receiver.IsSome -> receiver.Value
                 | _ -> error expression ("Unsupported CSS operation: " + symbol.FullName)
             | _ when ownerName.StartsWith ("Microsoft.FSharp.", StringComparison.Ordinal) -> this.Pure (expression, ownerName, name, arguments)
+            | _ when ownerName = "System.String" && name = "Concat" ->
+                // An interpolated string whose holes are all strings compiles to this call.
+                let rec parts value =
+                    match value with
+                    | Items values -> List.collect parts values
+                    | value ->
+                        match scalar expression value with
+                        | :? string as part -> [ part ]
+                        | _ -> error expression "Only string values can be concatenated at build time; convert other values with string."
+
+                Scalar (String.concat "" (List.collect parts arguments))
             | _ ->
                 error
                     expression
@@ -1321,11 +1369,36 @@ module internal Evaluation =
             finally
                 depth <- depth - 1
 
+        member private _.Lower(expression, data) =
+            let definition =
+                match data with
+                | Unknown reason ->
+                    error
+                        expression
+                        ("Cannot resolve the style of this application at build time: "
+                         + reason
+                         + ". The class it writes would have no rules in the emitted stylesheet."
+                         + " Apply a utility that is known at build time, and use whenActive for run-time conditions.")
+                | _ -> (nodes expression data |> Style.create).Definition
+
+            if not (List.exists hasDeclarations definition.Rules) then
+                error
+                    expression
+                    ("This application lowers to no rules: the element would receive class "
+                     + definition.ClassName
+                     + " with nothing to apply. Remove the application or give it a declaration.")
+
+            definition
+
         member this.Extract(expression, environment) =
-            this.Evaluate (environment, expression)
-            |> nodes expression
-            |> Style.create
-            |> _.Definition
+            this.Lower (expression, this.Evaluate (environment, expression))
+
+        member this.ExtractMany(expression, environment) =
+            match this.Evaluate (environment, expression) with
+            | Unknown _ as unresolved -> [ this.Lower (expression, unresolved) ]
+            | styles ->
+                items expression styles
+                |> List.map (fun style -> this.Lower (expression, style))
 
         member this.Discover(body: FSharpExpr, parameters: FSharpMemberOrFunctionOrValue list) =
             let roots = ResizeArray<StyleDefinition>()
@@ -1343,7 +1416,7 @@ module internal Evaluation =
                     if count > options.MaxExpressions then
                         error next "Source discovery expression bound exceeded."
 
-                    if isStyleRoot next then
+                    if (application next).IsSome then
                         found <- true
                     else
                         next.ImmediateSubExpressions
@@ -1355,9 +1428,11 @@ module internal Evaluation =
                 if nesting > options.MaxDepth then
                     error expression "Source discovery nesting bound exceeded."
 
-                if isStyleRoot expression then
-                    roots.Add (this.Extract (expression, environment))
-                else
+                match application expression with
+                | Some Fragment -> roots.Add (this.Extract (expression, environment))
+                | Some (Single style) -> roots.Add (this.Extract (style, environment))
+                | Some (Several styles) -> roots.AddRange (this.ExtractMany (styles, environment))
+                | None ->
                     match expression with
                     | Let ((symbol, value, _), rest) ->
                         walk (nesting + 1) environment value

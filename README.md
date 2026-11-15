@@ -14,10 +14,28 @@ The CSS projects, tools and checks were copied from Ranvier. Published Ranvier.V
 - `src/Ranvier.Css.Build`: deterministic CSS asset compilation.
 - `src/Ranvier.Css.View`: style and utility bindings for Ranvier.View.
 - `tools/Ranvier.Css.Generate`: pinned Webref consumer and binding generator.
-- `tools/Ranvier.Css.Compile`: static F# source extractor.
+- `tools/Ranvier.Css.Compile`: static F# source extractor, published as the .NET tool `Ranvier.Css.Compile` (command `ranvier-css-compile`).
 - `tools/Ranvier.Css.Import`: CSS-to-F# importer.
 
 See the [CSS API guide](src/Ranvier.Css/README.md), [generator guide](tools/Ranvier.Css.Generate/README.md), and [contributor guide](CONTRIBUTOR.md).
+
+## Extract a stylesheet
+
+Install the extractor, build the application, then extract the CSS of its `styles { ... }` applications:
+
+```bash
+dotnet tool install --global Ranvier.Css.Compile
+```
+
+```bash
+dotnet build path/to/App.fsproj -c Release
+```
+
+```bash
+ranvier-css-compile --project path/to/App.fsproj --output public/assets --single app.css
+```
+
+Extraction fails with a source position when a class it would put on an element has no rules. The [extractor guide](tools/Ranvier.Css.Compile/README.md) lists the options, the supported F# subset and the diagnostics.
 
 ## Setup and checks
 
@@ -28,7 +46,7 @@ rtk dotnet fsi build.fsx -- dev setup --with-browser
 rtk dotnet fsi build.fsx -- ci
 ```
 
-`ci` restores dependencies, checks formatting, builds libraries and tools in dependency order, runs every CSS check, and packs the four libraries. It uploads nothing.
+`ci` restores dependencies, checks formatting, builds libraries and tools in dependency order, runs every CSS check, packs the libraries and the extractor tool, and checks the packages by installing them into scratch folders. It uploads nothing.
 
 For individual CI shards:
 
@@ -64,6 +82,6 @@ Developer setup and CI use this command automatically.
 
 ## Releases
 
-Each library has a ShipIt changelog with a project version updater. Configure trusted NuGet publishing and GitHub permissions as described in [CONTRIBUTOR.md](CONTRIBUTOR.md#maintainer-setup). Fable source packaging and optional `.Traced` package identities are preserved.
+Each library and the extractor tool has a ShipIt changelog with a project version updater. The tool ships its own build of `Ranvier.Css.Core` and `Ranvier.Css.Build`, so its changelog lists both under `depends_on` and a release of either releases the tool. Configure trusted NuGet publishing and GitHub permissions as described in [CONTRIBUTOR.md](CONTRIBUTOR.md#maintainer-setup). Fable source packaging and optional `.Traced` package identities are preserved.
 
 For a change spanning View and CSS, validate explicit source revisions in local mode first, release View, then update and validate CSS against that published version before releasing CSS. A View release alone does not require a CSS release.
