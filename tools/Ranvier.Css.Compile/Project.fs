@@ -13,6 +13,8 @@ module internal Project =
     type CheckedProject =
         {
             ProjectPath: string
+            /// <summary>Absolute paths of the assemblies passed to the compiler as references.</summary>
+            References: string list
             Contents: FSharpImplementationFileContents list
         }
 
@@ -170,8 +172,9 @@ module internal Project =
                     |> List.filter (fst >> coreProject >> not)
                     |> List.map (fun (path, selectedFramework) -> visit selectedFramework path)
 
-                let projectOptions =
-                    checker.GetProjectOptionsFromCommandLineArgs (path, Array.map normalize arguments)
+                let arguments = Array.map normalize arguments
+
+                let projectOptions = checker.GetProjectOptionsFromCommandLineArgs (path, arguments)
 
                 let projectOptions =
                     { projectOptions with
@@ -202,6 +205,11 @@ module internal Project =
                     projectOptions,
                     {
                         ProjectPath = path
+                        References =
+                            arguments
+                            |> Array.filter (fun argument -> argument.StartsWith "-r:")
+                            |> Array.map (fun argument -> argument.Substring 3)
+                            |> Array.toList
                         Contents = results.AssemblyContents.ImplementationFiles
                     }
 

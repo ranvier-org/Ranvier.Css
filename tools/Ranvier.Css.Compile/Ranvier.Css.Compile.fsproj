@@ -2,7 +2,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <IsPackable>false</IsPackable>
+    <RollForward>Major</RollForward>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ranvier-css-compile</ToolCommandName>
+    <PackageId>Ranvier.Css.Compile</PackageId>
+    <Version>0.0.0-unreleased</Version>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <Description>A .NET tool that extracts the static CSS of typed Ranvier.Css styles applications from an F# project.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>ranvier;css;fsharp;build;static-css;dotnet-tool</PackageTags>
     <WarnOn>$(WarnOn);3390</WarnOn>
   </PropertyGroup>
   <ItemGroup>
@@ -16,6 +24,10 @@
     <Compile Include="Evaluation.fs" />
     <Compile Include="Extractor.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="../../brand/icon/ranvier-icon.png" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Ranvier.Css.Compile.Tests" />

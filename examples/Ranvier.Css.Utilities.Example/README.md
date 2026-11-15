@@ -18,6 +18,8 @@ rtk dotnet run --project tools/Ranvier.Css.Compile -c Release -- --project examp
 rtk dotnet run --project examples/Ranvier.Css.Utilities.Example -c Release
 ```
 
+With the published tool installed (`dotnet tool install --global Ranvier.Css.Compile`), the second command is `ranvier-css-compile` followed by the same arguments after `--`.
+
 The output contains `app.css`, `css-manifest.json` and `index.html`. The server reads the adjacent manifest to link the emitted asset URLs and includes the initial width variable. Extraction follows the `styles` application automatically; there is no stylesheet registry. The unused purple utility contributes no CSS. `--modules` and `--css-modules` select the other asset layouts; the same manifest-driven server entry point links those outputs too.
 
 The entry point only renders server HTML. A browser host uses the existing Ranvier mounting API: busy changes select an existing class, width changes update a custom property, and viewport/hover changes are handled by CSS. No reactive update inserts stylesheet rules.

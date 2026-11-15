@@ -43,9 +43,16 @@ dotnet add package Ranvier.Css.View
 asset compiler library. The view adapter also depends on the view packages; retain the
 [Xantham package source](https://ranvier-org.github.io/Ranvier.View/) required by those packages.
 
+The stylesheet is emitted at build time by the `Ranvier.Css.Compile` .NET tool:
+
+```bash
+dotnet tool install --global Ranvier.Css.Compile
+ranvier-css-compile --project path/to/App.fsproj --output public/assets --single app.css
+```
+
 For a source checkout, reference `src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj` and
 `src/Ranvier.Css.View/Ranvier.Css.View.fsproj`. See [extracting and serving CSS](css-build.md)
-for the build command: adding a class to HTML does not load its stylesheet.
+for the build steps: adding a class to HTML does not load its stylesheet.
 
 ## Typed properties
 

@@ -20,7 +20,9 @@ module Spec =
         "src/Ranvier.Css.Dom/Ranvier.Css.Dom.fsproj"
         "src/Fable.Ranvier.Css.Dom/Fable.Ranvier.Css.Dom.fsproj"
     ]
-    let tools = [ "tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj"; "tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" ]
+    let compileTool = "tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj"
+    let tools = [ "tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj"; compileTool ]
+    let packed = sources @ [ compileTool ]
     let localTools =
         use manifest = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root, ".config/dotnet-tools.json")))
         manifest.RootElement.GetProperty("tools").EnumerateObject()
@@ -181,8 +183,8 @@ module Stage =
     let allTests = testsWith (InputSpec.ret "all")
     let pack = input {
         let! clean = Baked.Stages.cleanWith (InputSpec.ret false) [] [ "bin/*.nupkg"; "bin/*.snupkg" ]
-        and! packages = Baked.Stages.pack "bin" Spec.sources
-        return stage "pack CSS libraries" {
+        and! packages = Baked.Stages.pack "bin" Spec.packed
+        return stage "pack CSS libraries and the extractor tool" {
             clean
             packages
         }
@@ -214,6 +216,10 @@ module Stage =
 
     let checkDomPackages = stage "restore isolated CSS DOM package consumers" {
         run "node tools/check-dom-package-consumers.mjs bin"
+    }
+
+    let checkToolPackage = stage "install the packed extractor tool and extract with it" {
+        run "node tools/check-tool-package.mjs bin"
     }
 
     let local = input {
@@ -284,7 +290,7 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "ci" {
         description "Run the complete CI gates locally and pack the validated libraries"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage }
     }
     command "compile" {
         description "Compile CSS browser checks to JavaScript with fickl"
@@ -295,12 +301,12 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
         Command.pipeline { Stage.restore; Stage.format }
     }
     command "pack" {
-        description "Build and pack CSS libraries with Fable sources"
-        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages }
+        description "Build and pack CSS libraries with Fable sources and the extractor tool, then check the packages"
+        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage }
     }
     command "publish" {
         description "Validate all CSS gates and publish (--dry-publish to skip upload)"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.publish }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage; Stage.publish }
     }
     command "docs" {
         description "Build documentation (--watch to serve it)"

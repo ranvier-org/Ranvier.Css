@@ -57,6 +57,9 @@ let private temporary (source: string) action =
 
     action project
 
+let private declaration name value =
+    Ranvier.Css.Style.declarations [ Ranvier.Css.Declaration.create name value ]
+
 let private compactFixture () =
     let node id kind children : Ranvier.Css.Internal.GrammarRuntime.Node =
         {
@@ -500,6 +503,7 @@ module App =
                 let project: Project.CheckedProject =
                     {
                         ProjectPath = path
+                        References = []
                         Contents = implementations
                     }
 
@@ -1682,6 +1686,77 @@ do failwith "Primitive initializers must never execute during extraction"
                         result.Assets.Head.Content
                         "border-image-repeat: round"
                         "A keyword getter is distinct from the rounding function."
+            testCase "two utilities in one application emit the class the runtime applies"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet card = utility { Css.width (Css.px 12.) }\nlet badge = utility { Css.height (Css.px 3.) }\nlet view () =\n    styles {\n        card\n        badge\n    }\n"
+                <| fun project ->
+                    let css = (extract ExtractionOptions.defaults project).Assets.Head.Content
+
+                    let composed =
+                        Ranvier.Css.Style.create [ declaration "width" "12px"; declaration "height" "3px" ]
+
+                    Expect.stringContains css ("." + composed.Definition.ClassName) "The composition has its own class, and that class has rules."
+                    Expect.stringContains css "width: 12px" "The first utility's declarations are in the sheet."
+                    Expect.stringContains css "height: 3px" "The second utility's declarations are in the sheet."
+            testCase "a fixed utility and a utility taking a predicate share one application"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nopen Ranvier.View\nlet button = utility { Css.width (Css.px 12.) }\nlet hiddenWhen (hidden: 'instance -> bool) = utility { whenActive hidden { Css.display CssValue.Display.none } }\nlet view (slot: int) : Part<obj, int> array =\n    styles {\n        button\n        hiddenWhen (fun (state: int) -> state > slot)\n    }\n"
+                <| fun project ->
+                    let css = (extract ExtractionOptions.defaults project).Assets.Head.Content
+
+                    let composed =
+                        Ranvier.Css.Style.create
+                            [
+                                declaration "width" "12px"
+                                Ranvier.Css.Style.whenActive (fun () -> true) [ declaration "display" "none" ]
+                            ]
+
+                    Expect.stringContains css ("." + composed.Definition.ClassName) "The gated alternative is emitted under the application's class."
+                    Expect.stringContains css "display: none" "The predicate's alternative is precompiled."
+            testCase "a class applied without the styles builder has rules in the sheet"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nopen Ranvier.View\nlet card = utility { Css.width (Css.px 12.) }\nlet badge = utility { Css.height (Css.px 3.) }\nlet tag: Styled<unit> = styled { Css.opacity (Css.number 0.5) }\nlet chip = utility { Css.marginLeft (Css.px 7.) }\nlet pair = utility { Css.marginTop (Css.px 9.) }\nlet view () : Part<obj, unit> array = styles { card }\nlet direct () : Part<obj, unit> array = CssView.parts (Utility.toStyled badge)\nlet attributes (attrs: AttributeBuilder<unit>) : Part<obj, unit> array = CssView.apply attrs tag\nlet named (attrs: AttributeBuilder<unit>) : Part<obj, unit> = CssView.className attrs chip.Definition\nlet several () : Part<obj, unit> array = CssView.partsWithInline [] [ Utility.toStyled pair ] (fun _ -> [])\n"
+                <| fun project ->
+                    let css = (extract ExtractionOptions.defaults project).Assets.Head.Content
+
+                    for name, value, entry in
+                        [
+                            "width", "12px", "styles"
+                            "height", "3px", "CssView.parts"
+                            "opacity", "0.5", "CssView.apply"
+                            "margin-left", "7px", "CssView.className"
+                            "margin-top", "9px", "CssView.partsWithInline"
+                        ] do
+                        let applied = Ranvier.Css.Style.create [ declaration name value ]
+
+                        Expect.stringContains
+                            css
+                            ("." + applied.Definition.ClassName)
+                            (entry
+                             + " puts this class on an element, so the sheet has its rules.")
+            testCase "an application outside the styles builder that cannot be resolved is reported"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nopen Ranvier.View\nlet card = utility { Css.width (Css.px 12.) }\nlet view () : Part<obj, unit> array = styles { card }\nlet direct (item: Utility) : Part<obj, unit> array =\n    CssView.parts (Utility.toStyled item)\n"
+                <| fun project ->
+                    match Extractor.extract ExtractionOptions.defaults project with
+                    | Ok _ -> failtest "The class this application puts on an element has no rules in the sheet."
+                    | Error errors ->
+                        Expect.stringContains errors.Head.Message "item" "The unresolved input is named."
+                        Expect.equal errors.Head.Line 8 "The application has its source line."
+            testCase "an application that lowers to no rules is reported"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet sized (enabled: bool) = utility { if enabled then Css.width (Css.px 12.) }\nlet card = utility { Css.height (Css.px 3.) }\nlet view () = styles { card }\nlet empty () =\n    styles { sized false }\n"
+                <| fun project ->
+                    match Extractor.extract ExtractionOptions.defaults project with
+                    | Ok _ -> failtest "The element receives a class that has no rules."
+                    | Error errors ->
+                        Expect.stringContains errors.Head.Message "no rules" "The diagnostic says what is wrong with the class."
+                        Expect.equal errors.Head.Line 8 "The application has its source line."
             testCase "root framework selection preserves referenced library targets"
             <| fun _ ->
                 let result =
