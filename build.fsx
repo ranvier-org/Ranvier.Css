@@ -97,6 +97,7 @@ module Stage =
     }
     let build = buildProjects Spec.sources
     let tools = buildProjects Spec.tools |> InputSpec.map (fun stage -> { stage with Name = "build tools" })
+    let packedTool = buildProjects [ Spec.compileTool ] |> InputSpec.map (fun stage -> { stage with Name = "build the extractor tool" })
 
     let formatWith check = Baked.Stages.fantomasWith (InputSpec.ret false) check Spec.formatting
     let format = input {
@@ -290,7 +291,7 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "ci" {
         description "Run the complete CI gates locally and pack the validated libraries"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.formatWith true; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.checkToolPackage; Stage.packTracedDom; Stage.checkDomPackages }
     }
     command "compile" {
         description "Compile CSS browser checks to JavaScript with fickl"
@@ -302,11 +303,11 @@ exit <| rootCommand fsi.CommandLineArgs[1..] {
     }
     command "pack" {
         description "Build and pack CSS libraries with Fable sources and the extractor tool, then check the packages"
-        Command.pipeline { Stage.restore; Stage.build; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage }
+        Command.pipeline { Stage.restore; Stage.build; Stage.packedTool; Stage.pack; Stage.checkToolPackage; Stage.packTracedDom; Stage.checkDomPackages }
     }
     command "publish" {
         description "Validate all CSS gates and publish (--dry-publish to skip upload)"
-        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.packTracedDom; Stage.checkDomPackages; Stage.checkToolPackage; Stage.publish }
+        Command.pipeline { Stage.restore; Stage.npm; Stage.build; Stage.tools; Stage.allTests; Stage.pack; Stage.checkToolPackage; Stage.packTracedDom; Stage.checkDomPackages; Stage.publish }
     }
     command "docs" {
         description "Build documentation (--watch to serve it)"
