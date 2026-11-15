@@ -89,6 +89,17 @@ module internal Evaluation =
             else
                 symbol.DisplayName
 
+        // The display name of a member named with an F# keyword keeps its backticks.
+        let name =
+            if
+                name.Length > 4
+                && name.StartsWith "``"
+                && name.EndsWith "``"
+            then
+                name.Substring (2, name.Length - 4)
+            else
+                name
+
         if name.StartsWith "get_" then name.Substring 4 else name
 
     let private error (expression: FSharpExpr) message =
@@ -974,6 +985,17 @@ module internal Evaluation =
                 | ("Ranvier.Css.Utility" | "Ranvier.Css.Utility`1" | "Ranvier.Css.Styled`1"), "Definition", _ when receiver.IsSome -> receiver.Value
                 | _ -> error expression ("Unsupported CSS operation: " + symbol.FullName)
             | _ when ownerName.StartsWith ("Microsoft.FSharp.", StringComparison.Ordinal) -> this.Pure (expression, ownerName, name, arguments)
+            | _ when ownerName = "System.String" && name = "Concat" ->
+                // An interpolated string whose holes are all strings compiles to this call.
+                let rec parts value =
+                    match value with
+                    | Items values -> List.collect parts values
+                    | value ->
+                        match scalar expression value with
+                        | :? string as part -> [ part ]
+                        | _ -> error expression "Only string values can be concatenated at build time; convert other values with string."
+
+                Scalar (String.concat "" (List.collect parts arguments))
             | _ ->
                 error
                     expression

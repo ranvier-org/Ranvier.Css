@@ -1686,6 +1686,21 @@ do failwith "Primitive initializers must never execute during extraction"
                         result.Assets.Head.Content
                         "border-image-repeat: round"
                         "A keyword getter is distinct from the rounding function."
+            testCase "interpolated strings with string holes are concatenated"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet follows (property: string) (variable: string) = Declaration.create property $\"var(--{variable})\"\nlet stage = utility { follows \"width\" \"stage-w\" }\nlet view () = styles { stage }\n"
+                <| fun project ->
+                    let css = (extract ExtractionOptions.defaults project).Assets.Head.Content
+                    Expect.stringContains css "width: var(--stage-w)" "The interpolation is evaluated from its fixed arguments."
+            testCase "members named with F# keywords resolve their metadata"
+            <| fun _ ->
+                temporary
+                    "module Fixture\nopen Ranvier.Css\nopen Ranvier.Css.View\nlet control = utility { Css.fontFamily CssValue.All.``inherit``; Css.position CssValue.Position.``static`` }\nlet view () = styles { control }\n"
+                <| fun project ->
+                    let css = (extract ExtractionOptions.defaults project).Assets.Head.Content
+                    Expect.stringContains css "font-family: inherit" "A CSS-wide keyword named with an F# keyword is extracted."
+                    Expect.stringContains css "position: static" "A property keyword named with an F# keyword is extracted."
             testCase "two utilities in one application emit the class the runtime applies"
             <| fun _ ->
                 temporary
