@@ -235,6 +235,12 @@ type private Measurement =
 
 let private sampleCount = 15
 
+/// <summary>Signal writes in one sample of a render row.</summary>
+let private renderOperations = 20_000
+
+/// <summary>Calls in one sample of a part row.</summary>
+let private partOperations = 250_000
+
 let private measure name (operations: int) (run: int -> unit) =
     // Tiered compilation promotes the loop body before the first sample.
     for _ in 1..3 do
@@ -290,7 +296,7 @@ let private renders name (definition: Component<Row>) effects =
             use mounted = new Mounted (graph, definition, row, effects)
 
             let result =
-                measure (name + ": " + label) 200_000 (fun count ->
+                measure (name + ": " + label) renderOperations (fun count ->
                     for index in 1..count do
                         change row index)
 
@@ -350,37 +356,37 @@ let private parts () =
         ]
 
     [
-        measure "Generated.number value \"px\" (one number to text)" 1_000_000 (fun count ->
+        measure "Generated.number value \"px\" (one number to text)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Generated.number pixelsValue "px": Value<unit>))
-        measure "Css.px value (the reader's own work)" 1_000_000 (fun count ->
+        measure "Css.px value (the reader's own work)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Css.px pixelsValue))
-        measure "Css.top length (admission and declaration of a built value)" 1_000_000 (fun count ->
+        measure "Css.top length (admission and declaration of a built value)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Css.top length))
-        measure "Css.top (Css.px value)" 1_000_000 (fun count ->
+        measure "Css.top (Css.px value)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Css.top (Css.px pixelsValue)))
-        measure "Style.variableDeclarations, one Css.top reader" 1_000_000 (fun count ->
+        measure "Style.variableDeclarations, one Css.top reader" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Style.variableDeclarations pixelsValue topReader))
-        measure "Css.opacity (Css.number value)" 1_000_000 (fun count ->
+        measure "Css.opacity (Css.number value)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Css.opacity (Css.number 0.85)))
-        measure "Css.position CssValue.Position.absolute (a keyword)" 1_000_000 (fun count ->
+        measure "Css.position CssValue.Position.absolute (a keyword)" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Css.position CssValue.Position.absolute))
-        measure "Declaration.isCssWide \"120px\"" 1_000_000 (fun count ->
+        measure "Declaration.isCssWide \"120px\"" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Declaration.isCssWide authored))
-        measure "Declaration.create variable \"120px\"" 1_000_000 (fun count ->
+        measure "Declaration.create variable \"120px\"" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Declaration.create "--r-0123456789abcdef-1" "120px"))
-        measure "Declaration.render, one declaration" 1_000_000 (fun count ->
+        measure "Declaration.render, one declaration" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Declaration.render lowered))
-        measure "Declaration.renderMany, six declarations" 1_000_000 (fun count ->
+        measure "Declaration.renderMany, six declarations" partOperations (fun count ->
             for _ in 1..count do
                 kept <- box (Declaration.renderMany six))
     ]
