@@ -567,6 +567,30 @@ let tests =
         [
             compactCases
 
+            testCase "the committed bindings' namespaces are distinct from Core's modules"
+            <| fun _ ->
+                // A Fable precompile compiles Core and the bindings into one assembly, where a namespace and a
+                // module of one name fail with FS0247.
+                let bindings =
+                    Path.Combine (__SOURCE_DIRECTORY__, "..", "..", "src", "Ranvier.Css.Bindings", "Generated", "Css.fs")
+
+                let namespaces =
+                    File.ReadLines bindings
+                    |> Seq.filter (fun line -> line.StartsWith ("namespace ", StringComparison.Ordinal))
+                    |> Seq.map (fun line -> line.Substring("namespace ".Length).Replace("``", "").Trim())
+                    |> Set.ofSeq
+
+                let modules =
+                    typedefof<Ranvier.Css.Value<_>>.Assembly.GetTypes()
+                    |> Seq.filter Microsoft.FSharp.Reflection.FSharpType.IsModule
+                    |> Seq.map (fun moduleType -> moduleType.FullName.Replace ('+', '.'))
+                    |> Set.ofSeq
+
+                Expect.isNonEmpty namespaces "The committed bindings declare namespaces."
+                Expect.isTrue (modules.Contains "Ranvier.Css.Generated") "Core's generated-value factories are a module."
+
+                Expect.isEmpty (Set.intersect namespaces modules |> Set.toList) "Every namespace of the bindings differs from every module of Core."
+
             testCase "shared runtime emits value categories instead of keyword overload products"
             <| fun _ ->
                 let output =
