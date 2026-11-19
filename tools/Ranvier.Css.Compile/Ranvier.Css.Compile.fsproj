@@ -6,7 +6,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ranvier-css-compile</ToolCommandName>
     <PackageId>Ranvier.Css.Compile</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>A .NET tool that extracts the static CSS of typed Ranvier.Css styles applications from an F# project.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

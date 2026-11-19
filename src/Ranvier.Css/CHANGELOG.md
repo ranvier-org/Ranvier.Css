@@ -1,5 +1,5 @@
 ---
-last_commit_released: 87c566a11897816672927ca9b4e36e682daf37e3
+last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -12,6 +12,18 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.2.0 - 2026-11-19
+
+### 🚀 Features
+
+* *(view)* Let a host read the definitions of the classes CssView applies (#32) ([0b74916](https://github.com/ranvier-org/Ranvier.Css/commit/0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e))
+
+### ⚡ Performance Improvements
+
+* *(css)* Do each check once in a read of a reader value (#30) ([10e9644](https://github.com/ranvier-org/Ranvier.Css/commit/10e96440bad8435af85ddc50cb83477a4396bb6e))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/87c566a11897816672927ca9b4e36e682daf37e3..0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e)</small></strong>
 
 ## 0.1.1 - 2026-11-14
 

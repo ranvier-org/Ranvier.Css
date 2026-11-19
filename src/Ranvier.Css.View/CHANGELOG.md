@@ -1,5 +1,5 @@
 ---
-last_commit_released: eb4422e7d8a3cf2f401a5713ac85248aed112870
+last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
 updaters:
   - xml:
       file: Ranvier.Css.View.fsproj
@@ -7,6 +7,14 @@ updaters:
 ---
 
 # Changelog
+
+## 0.2.0 - 2026-11-19
+
+### 🚀 Features
+
+* *(view)* Let a host read the definitions of the classes CssView applies (#32) ([0b74916](https://github.com/ranvier-org/Ranvier.Css/commit/0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/eb4422e7d8a3cf2f401a5713ac85248aed112870..0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e)</small></strong>
 
 ## 0.1.1 - 2026-11-14
 
