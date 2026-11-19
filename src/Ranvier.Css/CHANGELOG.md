@@ -1,5 +1,5 @@
 ---
-last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
+last_commit_released: 3efb9ba69dddb6d8451fcf03d395452716f81c38
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -12,6 +12,14 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 1.0.0 - 2026-11-19
+
+### 🏗️ Breaking changes
+
+* *(bindings)* Generate the grammar storage in Ranvier.Css (#35) ([3efb9ba](https://github.com/ranvier-org/Ranvier.Css/commit/3efb9ba69dddb6d8451fcf03d395452716f81c38))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e..3efb9ba69dddb6d8451fcf03d395452716f81c38)</small></strong>
 
 ## 0.2.0 - 2026-11-19
 
