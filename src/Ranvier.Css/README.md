@@ -119,6 +119,7 @@ let width = Css.width spaced
 - `CssView.className` and `CssView.variables` expose those parts separately.
 - `CssView.inlineStyle attrs reader` supports fully dynamic inline declaration lists, including CSS-wide keywords.
 - `CssView.withStylesheets urls shell` appends ordered, deduplicated asset links to an SSR document shell.
+- `AppliedStyles.after count` returns the definitions of the classes applied after the first `count`, for a .NET host that fills its stylesheet at run time; `AppliedStyles.count ()` is the number applied so far.
 
 Compose style parts through these combined helpers rather than attach competing writers for the same `class` or `style` attribute. Signal and memo reads belong inside readers; reading their values while defining a style captures a static snapshot.
 

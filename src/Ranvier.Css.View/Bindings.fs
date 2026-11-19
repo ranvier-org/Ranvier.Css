@@ -3,10 +3,51 @@ namespace Ranvier.Css.View
 open Ranvier.Css
 open Ranvier.View
 
+#if !FABLE_COMPILER
+/// <summary>
+/// The definitions of the classes <c>CssView</c> has put on elements in this process, in order of first application.
+/// </summary>
+/// <remarks>
+/// <para>A class enters the log once, by name, when <c>CssView</c> first builds parts that carry it. Every thread shares the log,
+/// and it keeps each definition for the life of the process.</para>
+/// <para>Compiled for .NET only. A Fable build takes its stylesheet from the extractor.</para>
+/// </remarks>
+module AppliedStyles =
+    let private gate = obj ()
+
+    let private names =
+        System.Collections.Concurrent.ConcurrentDictionary<string, bool>(System.StringComparer.Ordinal)
+
+    let private log = ResizeArray<StyleDefinition>()
+
+    let internal record (definition: StyleDefinition) =
+        if not (names.ContainsKey definition.ClassName) then
+            lock gate (fun () ->
+                if names.TryAdd (definition.ClassName, true) then
+                    log.Add definition)
+
+    /// <summary>The number of distinct classes applied so far.</summary>
+    let count () =
+        lock gate (fun () -> log.Count)
+
+    /// <summary>The definitions applied after the first <c>count</c>, in order of first application.</summary>
+    /// <remarks>A host passes the number of definitions it has taken and receives the rest; <c>after 0</c> is the whole log.</remarks>
+    /// <exception cref="T:System.ArgumentOutOfRangeException"><c>count</c> is negative or exceeds the number of classes applied.</exception>
+    let after (count: int) : StyleDefinition list =
+        lock gate (fun () ->
+            if count < 0 || count > log.Count then
+                raise (System.ArgumentOutOfRangeException (nameof count, count, "The position is outside the log."))
+
+            [ for index in count .. log.Count - 1 -> log[index] ])
+#endif
+
 /// <summary>Template style parts using Ranvier's tracked readers and component disposal.</summary>
 module CssView =
     /// <summary>Applies a static generated class name.</summary>
     let className (attrs: AttributeBuilder<'instance>) (definition: StyleDefinition) : Part<'native, 'instance> =
+#if !FABLE_COMPILER
+        AppliedStyles.record definition
+#endif
         attrs.composableClass (attrs.attribute ("class", definition.ClassName))
 
     /// <summary>Binds current variable declarations through the template's tracked style attribute.</summary>
@@ -20,6 +61,11 @@ module CssView =
     /// <summary>Class and tracked style parts for static class names, component styles and inline declarations.</summary>
     /// <remarks>The result has one writer for the class attribute and one for the style attribute.</remarks>
     let partsWithInline extraClasses (styles: Styled<'instance> list) (read: 'instance -> Declaration list) : Part<'native, 'instance> array =
+#if !FABLE_COMPILER
+        for style in styles do
+            AppliedStyles.record style.Definition
+#endif
+
         let classes instance =
             extraClasses
             @ (styles |> List.collect (Style.classNames instance))

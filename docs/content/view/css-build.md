@@ -91,6 +91,37 @@ must be loaded before expecting those classes to affect appearance.
 Runtime updates only change classes and custom properties. They do not insert rules, compile
 CSS or rebuild stylesheets. The browser handles media queries, selectors and the cascade.
 
+## Serve the rules at run time
+
+A .NET host that owns its stylesheet, such as a native window, can take the rules from the
+running app in place of an extracted file. `AppliedStyles` in `Ranvier.Css.View` holds the
+definition of every class put on an element in the process, in order of first application:
+by a `styles { ... }` application, and by `CssView.parts`, `apply`, `applyMany`,
+`applyWithInline`, `partsWithInline` and `className`.
+
+```fsharp
+let mutable served = 0
+
+/// Called once a frame, after the frame's writes.
+let flush (insert: string -> unit) =
+    let added = AppliedStyles.after served
+    served <- served + added.Length
+
+    for definition in added do
+        insert (Stylesheet.render definition.Rules)
+```
+
+`AppliedStyles.after count` returns the definitions applied after the first `count`, so
+`AppliedStyles.after 0` fills a new sheet with all of them. `AppliedStyles.count ()` is the number
+applied so far. Both can be called from any thread.
+
+A class is in the log once, under its name, and stays for the life of the process. Under hot
+reload a changed utility has a new class name and a new entry. Between two classes on one
+element, the order of first application decides which rule comes later in the sheet; a
+`styles { ... }` application puts one class on an element.
+
+`AppliedStyles` is compiled for .NET only. A Fable build takes its stylesheet from the extractor.
+
 ## Build-time evaluation
 
 The extractor interprets typed F# implementation trees. It does not load an application
