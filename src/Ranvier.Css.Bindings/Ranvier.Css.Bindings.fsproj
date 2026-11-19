@@ -8,6 +8,12 @@
     <Description>Specification-generated typed CSS properties and ergonomic helpers for Ranvier.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>ranvier;css;fsharp;bindings;typed-css</PackageTags>
+    <!--
+    Optimised in every configuration. With optimisation off and debug information on, the F# compiler gives each
+    module-level value a debugger local in the file's initialiser, and overflows its stack on Generated/Css.fs,
+    which holds about 8,900 of them. SDK 10.0.404 fails between 6,000 and 8,000 values in one file.
+    -->
+    <Optimize>true</Optimize>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Ranvier.Css/Ranvier.Css.fsproj" />
