@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "title": "Typed CSS",
+  "description": "Spec-generated typed CSS declarations, selectors, utilities, DOM style maps, and static stylesheet extraction.",
+  "index": "index.md",
+  "apiReference": {
+    "title": "API reference",
+    "projects": [
+      "src/Ranvier.Css/Ranvier.Css.fsproj",
+      "src/Ranvier.Css.Bindings/Ranvier.Css.Bindings.fsproj",
+      "src/Ranvier.Css.View/Ranvier.Css.View.fsproj"
+    ],
+    "assemblies": [
+      "Ranvier.Css",
+      "Ranvier.Css.Bindings",
+      "Ranvier.Css.View"
+    ]
+  },
+  "sections": [
+    {
+      "title": "Getting started",
+      "items": [
+        "index.md",
+        "guide/introduction.md"
+      ]
+    },
+    {
+      "title": "Authoring & extraction",
+      "items": [
+        "view/css.md",
+        "view/css-utilities.md",
+        "view/css-build.md"
+      ]
+    }
+  ]
+}
