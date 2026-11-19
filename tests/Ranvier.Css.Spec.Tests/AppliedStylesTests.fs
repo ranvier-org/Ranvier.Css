@@ -191,6 +191,7 @@ let tests =
                 let start = AppliedStyles.count ()
                 let read = ResizeArray<StyleDefinition>()
                 let finished = new ManualResetEventSlim false
+                let failure: exn option ref = ref None
 
                 let reader () =
                     let taken = ref start
@@ -200,10 +201,13 @@ let tests =
                         taken.Value <- taken.Value + batch.Length
                         read.AddRange batch
 
-                    while not finished.IsSet do
-                        take ()
+                    try
+                        while not finished.IsSet do
+                            take ()
 
-                    take ()
+                        take ()
+                    with error ->
+                        failure.Value <- Some error
 
                 let readerThread = Thread (ThreadStart reader)
                 readerThread.Start ()
@@ -217,6 +221,25 @@ let tests =
 
                 finished.Set ()
                 readerThread.Join ()
-                Expect.equal (List.ofSeq read) (AppliedStyles.after start) "The batches, joined, are the log from the start position"
-                Expect.equal (appliedSince start (List.concat styles)).Length 1200 "Every class is in it"
+                Expect.isNone failure.Value "The reader did not fail"
+                let joined = List.ofSeq read
+
+                Expect.equal
+                    joined
+                    (AppliedStyles.after start
+                     |> List.truncate joined.Length)
+                    "The batches, joined, are the log from the start position"
+
+                let mine =
+                    styles
+                    |> List.concat
+                    |> List.map _.Definition.ClassName
+                    |> Set.ofList
+
+                Expect.equal
+                    (joined
+                     |> List.filter (fun definition -> mine.Contains definition.ClassName)
+                     |> List.length)
+                    1200
+                    "Every class applied by the threads was read"
         ]
