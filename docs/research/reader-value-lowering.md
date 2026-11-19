@@ -1,8 +1,9 @@
 # Reader values: what one read costs, and a design to cut it
 
-Status: proposal, 2026-11-19, branch `perf/reader-value-lowering`. Nothing under `src/` has changed. The only
-code on the branch is the benchmark this note reports from. A change to a published package waits for the
-owner's agreement.
+Status: changes 1 to 3 are implemented on branch `perf/reader-value-lowering`, 2026-11-19, after the owner
+agreed to them. The branch is local: nothing is pushed, merged or released. Changes 4 and 5, a result cache
+and an isolated style slot are not implemented. The sections up to "After" are the proposal as it was
+written, with what was done noted under "As implemented" and "As done".
 
 Every figure below is **measured here** unless it is marked **from source** or **general knowledge**. "Measured
 here" means this machine (Windows 11, .NET 10.0.15, Release build), while other sessions were building on it:
@@ -18,9 +19,10 @@ processor use was about 50% during the last runs, so read differences under 10% 
 3. The repeated work is inside one read. A read of `Css.top (fun row -> Css.px row.Top.Value)` turns one number
    into text 9 times and keeps 1 text. It also runs 2 name regexes and 2 regex replacements on text that needs
    none of them.
-4. **Proposed:** do each check once per read (changes 1 to 3 below). No cache, nothing kept per element or per
-   instance, no public signature added or changed. A throwaway copy with these three changes renders the
-   benchmark instance in 4.7 µs against 11.0 µs in the same session, with the same style text.
+4. **Proposed, and now done:** do each check once per read (changes 1 to 3 below). No cache, nothing kept per
+   element or per instance, no public signature added or changed. A throwaway copy with these three changes
+   rendered the benchmark instance in 4.7 µs against 11.0 µs in the same session, with the same style text.
+   The implementation renders it in 4.4 µs and 21.7 KB against 11.8 µs and 34.0 KB before (see "After").
 5. **Not proposed now:** a result cache. What each variant would keep, where, and what it would save is in
    "A cache of the last result".
 6. **For a later decision:** a style slot in an effect of its own. It is the one design in which an unchanged
@@ -176,6 +178,15 @@ The result is the same for every input:
 uses the array when the ids are dense and keeps the map lookup otherwise, since it is public and accepts any
 nonnegative ids.
 
+As implemented: the array is built when the highest id is below twice the node count. An id outside the array,
+or at a gap in it, goes to the map, which raises the same "Unknown CSS grammar node" error as before. The
+generated table has ids 0 to 13,540 with no gap (measured here: decoded from `Css.manifest.json`).
+
+The printed form of a table stays as it was. `tests/Ranvier.Css.AotSmoke` prints tables, and `%+A` prints every
+field of a union, so a second field would have appeared in that text. `Table` carries a
+`StructuredFormatDisplay` that prints a private one-field stand-in holding the map. The smoke program's output
+is byte-identical before and after (measured here: 125 lines, Release, JIT).
+
 ### What the design keeps, and where
 
 Nothing between reads. No state per element, per instance or per style. No shared mutable state, so rendering
@@ -187,7 +198,9 @@ One array per grammar table for the life of the process: 13,541 references, abou
 ### Public signatures
 
 None added, changed or removed. Two internal functions are added in `Values.fs`: the range comparison on a
-number and unit, and the constructor of a lowered declaration. `Table` is a private union and gains a field.
+number and unit (`Generated.checkRange`), and the constructor of a lowered declaration
+(`Declaration.assignTo`). `Table` is a private union and gains a field; its printed form is unchanged (see
+change 3).
 
 All three changes are in `src/Ranvier.Css`. `Ranvier.Css.Bindings`, `Ranvier.Css.View` and the generated
 `Css.fs` are untouched.
@@ -240,6 +253,80 @@ Changes 4 and 5 are left out of the proposal:
 6. The benchmark, run again on the same machine, for the after figures.
 
 The gate is `dotnet fsi build.fsx -- test`, unfiltered, and the browser group for the Fable build.
+
+As done: tests 1 to 5 are in `tests/Ranvier.Css.Spec.Tests` (`GrammarRuntimeTests.fs`, `RuntimeTests.fs`),
+committed before any change under `src/`. Their expected values were recorded from the unchanged build, where
+all of them passed, so a first run could not show that they are able to fail. To show it, five wrong variants
+were built once and the tests run against them (measured here): a range check that ignores an upper bound, a
+lookup without the fallback for a gap, a name check without the pattern fallback, a keyword check that ignores
+comments, and a lowered declaration that keeps importance. 2 of 25 grammar tests and 5 of 21 runtime tests
+failed, at least one for each variant. The wrong variants were then removed.
+
+## After: changes 1 to 3 as implemented
+
+The committed benchmark, run twice before the change and twice after it, with the committed sample lengths, on
+the same machine. Between 17 and 22 `dotnet` processes of other sessions were running during the after runs.
+Times are medians; each cell is run 1 / run 2.
+
+### Renders
+
+| Instance | Signal written | µs before | µs after | Bytes before | Bytes after |
+|---|---|---:|---:|---:|---:|
+| reader values | text (no style value changes) | 11.8 / 11.6 | 4.4 / 4.5 | 33,969 | 21,672 |
+| reader values | `top` (one style value changes) | 12.3 / 12.8 | 5.1 / 4.9 | 33,969 | 21,672 |
+| reader values | `top`, a new number each time | 13.0 / 12.9 | 5.4 / 5.4 | 34,168 | 21,742 |
+| reader values | `selected` (the condition changes) | 12.3 / 12.8 | 4.9 / 5.3 | 33,781 | 21,484 |
+| style text | text | 0.38 / 0.41 | 0.42 / 0.40 | 824 | 824 |
+| reader values, style slots isolated | text | 0.15 / 0.23 | 0.14 / 0.14 | 640 | 640 |
+| reader values, style slots isolated | `top` | 6.0 / 6.5 | 2.9 / 2.5 | 16,696 | 10,632 |
+| reader values, style slots isolated | `top`, a new number each time | 6.3 / 6.3 | 2.7 / 2.7 | 16,895 | 10,702 |
+| reader values, style slots isolated | `selected` | 4.2 / 4.3 | 1.8 / 2.0 | 11,324 | 7,268 |
+
+- Six readers still run on every render of the reader-value instance: the change is in what a read costs.
+- The `style text` rows exercise no changed code; their difference is the scatter of this machine.
+- The slot values the benchmark prints (class names and variable text) are the same before and after.
+- Bytes allocated to create one row's signals, start its effects and render it once: 23,680 for reader values
+  (35,977 before), 2,832 for style text (unchanged), 24,960 with the style slots isolated (37,257 before).
+
+### Parts of one read
+
+One operation is one call. These pair runs with the committed sample lengths, so the before column differs
+from the table under "Parts of one read" above, which used samples four times longer.
+
+| Call | ns before | ns after | Bytes before | Bytes after |
+|---|---:|---:|---:|---:|
+| `Generated.number value "px"` | 91 / 78 | 87 / 115 | 312 | 312 |
+| `Css.px value` (the reader's own work) | 513 / 505 | 373 / 446 | 2,048 | 1,744 |
+| `Css.top length` (admission and declaration) | 798 / 818 | 185 / 209 | 2,768 | 1,248 |
+| `Css.top (Css.px value)` | 1,691 / 1,941 | 589 / 622 | 4,816 | 2,992 |
+| `Style.variableDeclarations`, one `Css.top` reader (one read) | 1,921 / 2,369 | 673 / 650 | 5,032 | 3,144 |
+| `Css.opacity (Css.number value)` | 1,334 / 1,752 | 541 / 672 | 4,136 | 2,551 |
+| `Css.position CssValue.Position.absolute` | 249 / 240 | 100 / 101 | 728 | 728 |
+| `Declaration.isCssWide "120px"` | 138 / 161 | 30 / 28 | 280 | 216 |
+| `Declaration.create variable "120px"` | 63 / 78 | 16 / 22 | 40 | 40 |
+| `Declaration.render`, one declaration | 20 / 27 | 19 / 24 | 152 | 152 |
+| `Declaration.renderMany`, six declarations | 218 / 277 | 211 / 255 | 1,600 | 1,600 |
+
+One read is 650 to 673 ns here. The longer-sample table above gave 1,704 ns before the change; no
+longer-sample run was made after it.
+
+### What was checked
+
+- `tests/Ranvier.Css.Spec.Tests`: the tests listed under "Tests written before the change" pass before and
+  after, and fail on five wrong variants (see "As done").
+- `tests/Ranvier.Css.AotSmoke`, built in Release and run under the JIT: its 125 lines of output, which include
+  the printed form of declarations, grammar nodes and grammar tables, are byte-identical before and after.
+- `dotnet fsi build.fsx -- test --quick`, every group: exit 0. `Ranvier.Css.Spec.Tests` 215 passed and 0 failed,
+  `Ranvier.Css.Compile.Tests` 40 passed and 0 failed, the binding, asset and import checks passed, and the
+  browser group compiled with fickl and passed under jsdom and headless Chromium. `--quick` skips three stages,
+  which were covered this way: `dotnet restore` was run by hand first, the pinned npm packages and the 122 spec
+  extracts were copied from the main checkout at the same commit (the extracts' digests were verified by the
+  gate), and Chromium was already installed.
+- Not measured: a DOM write, a browser's timing, the Fable build's speed, and Native AOT. The smoke program was
+  not published as a native binary, so the AOT printed form is unchanged by inspection only: the
+  `NativeDisplay` member prints the same single field.
+- Not checked: an application trimmed without Native AOT that prints a grammar table. `%+A` reaches the
+  stand-in through a private property by reflection.
 
 ## A cache of the last result
 
@@ -329,7 +416,8 @@ Each is a proposal of its own, with its own figures from the same benchmark.
 
 ## Decisions for the owner
 
-1. Changes 1 to 3: go ahead on this branch, tests first?
+1. Changes 1 to 3: go ahead on this branch, tests first? **Agreed 2026-11-19 and done.** Pushing the branch,
+   a pull request, the merge and the release are still to be decided.
 2. Change 4 with them, or leave it?
 3. Change 5: is the gain worth the test it needs?
 4. An isolated style slot as a `CssView` function: wanted as a separate proposal?
