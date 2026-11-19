@@ -1,5 +1,5 @@
 ---
-last_commit_released: ac4c9be3bf8a5e30819d88959d0e8d80fce4bc68
+last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
 depends_on:
   - ../../src/Ranvier.Css/
   - ../../src/Ranvier.Css.Build/
@@ -10,6 +10,14 @@ updaters:
 ---
 
 # Changelog
+
+## 0.1.1 - 2026-11-19
+
+### 🔗 Dependencies
+
+* `src/Ranvier.Css` updated to 0.2.0
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/ac4c9be3bf8a5e30819d88959d0e8d80fce4bc68..0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e)</small></strong>
 
 ## 0.1.0 - 2026-11-15
 
