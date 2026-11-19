@@ -225,4 +225,222 @@ let tests =
                     Style.create [ Style.dynamic "width" (fun () -> Declaration.create "height" "1px") ]
 
                 Expect.throwsT<System.ArgumentException> (fun () -> Style.renderVariables () definition |> ignore) "Reader identity"
+            testCase "property names are ASCII identifiers or custom properties"
+            <| fun _ ->
+                for name in
+                    [
+                        "color"
+                        "-webkit-box"
+                        "_x"
+                        "-x"
+                        "-_"
+                        "A"
+                        "a1"
+                        "a-"
+                        "a_"
+                        "--x"
+                        "---"
+                        "--1"
+                        "--a-b_c9"
+                    ] do
+                    Expect.equal (Declaration.create name "v" |> Declaration.name) name "A valid name is kept as written."
+
+                for name in
+                    [
+                        null
+                        ""
+                        " "
+                        "-"
+                        "--"
+                        "1x"
+                        "-1"
+                        "a b"
+                        " a"
+                        "a "
+                        "a.b"
+                        "a:b"
+                        "é"
+                        "aé"
+                        "\na"
+                        "\n"
+                        "-\n"
+                        "--\n"
+                        "a\r"
+                        "a\r\n"
+                        "a\n\n"
+                    ] do
+                    let raised =
+                        try
+                            Declaration.create name "v" |> ignore
+                            None
+                        with :? System.ArgumentException as error ->
+                            Some (error.ParamName, error.Message)
+
+                    Expect.equal raised (Some ("name", "Expected a CSS property name. (Parameter 'name')")) "An invalid name is rejected by name."
+
+                Expect.throwsT<System.ArgumentNullException> (fun () -> Declaration.create "color" null |> ignore) "Null value text is rejected."
+            testCase "a property name may end in one line feed on .NET"
+            <| fun _ ->
+                for name in [ "x\n"; "-x\n"; "--x\n" ] do
+                    Expect.equal (Declaration.create name "v" |> Declaration.name) name "The pattern's end anchor matches before a final line feed."
+            testCase "every short name is accepted exactly when the property-name pattern matches it"
+            <| fun _ ->
+                let pattern =
+                    System.Text.RegularExpressions.Regex @"^--[A-Za-z0-9_-]+$|^-?[A-Za-z_][A-Za-z0-9_-]*$"
+
+                let alphabet = [ "-"; "_"; "a"; "Z"; "0"; " "; "\n"; "é"; "." ]
+
+                let rec names length =
+                    if length = 0 then
+                        [ "" ]
+                    else
+                        [
+                            for prefix in names (length - 1) do
+                                for letter in alphabet -> prefix + letter
+                        ]
+
+                let disagreements =
+                    [
+                        for length in 1..4 do
+                            for name in names length do
+                                let accepted =
+                                    try
+                                        Declaration.create name "v" |> ignore
+                                        true
+                                    with :? System.ArgumentException ->
+                                        false
+
+                                if accepted <> pattern.IsMatch name then
+                                    name
+                    ]
+
+                Expect.isEmpty disagreements "Acceptance follows the pattern for every name of up to four characters."
+            testCase "CSS-wide keywords are recognized through case, spacing, comments and escapes"
+            <| fun _ ->
+                let wide text =
+                    Declaration.isCssWide (Declaration.create "color" text)
+
+                for text in
+                    [
+                        "initial"
+                        "INHERIT"
+                        "Unset"
+                        "  unset  "
+                        " INITIAL "
+                        "\tRevert\n"
+                        "revert-layer"
+                        "revert-rule"
+                        "/**/initial"
+                        "initial/* c */"
+                        "\\69 nitial"
+                        "\\000069nitial"
+                        "\\0069 nitial"
+                        "\\49NITIAL"
+                        "i\\6e itial"
+                        "ini\\74 ial"
+                        "\\initial"
+                    ] do
+                    Expect.isTrue (wide text) ("CSS-wide: " + text)
+
+                for text in
+                    [
+                        ""
+                        "red"
+                        "120px"
+                        "var(--x)"
+                        "initial initial"
+                        "initial;"
+                        "inherit !important"
+                        "in/**/herit"
+                        "/* initial */"
+                        "/*initial"
+                        "/ * */initial"
+                        "initial\\"
+                        "\\i nitial"
+                        "\\80 initial"
+                    ] do
+                    Expect.isFalse (wide text) ("Ordinary: " + text)
+            testCase "a supplied keyword registry replaces the CSS-wide keywords"
+            <| fun _ ->
+                let declaration text =
+                    Declaration.create "color" text
+
+                Expect.isTrue
+                    (Declaration.isCssWideWith [ "future-wide" ] (declaration " Future-Wide "))
+                    "A registered keyword matches through case and spacing."
+
+                Expect.isFalse (Declaration.isCssWideWith [ "future-wide" ] (declaration "initial")) "A keyword outside the registry is ordinary."
+                Expect.isFalse (Declaration.isCssWideWith [] (declaration "initial")) "An empty registry recognizes no keyword."
+            testCase "dynamic slots lower reader values to unimportant custom properties under a stable class"
+            <| fun _ ->
+                let px (value: float) =
+                    Value.render (Generated.number value "px": Value<unit>)
+
+                let style: Styled<float> =
+                    Style.create
+                        [
+                            Style.declarations [ Declaration.create "position" "absolute" ]
+                            Style.dynamic "top" (fun value -> Declaration.create "top" (px value))
+                            Style.dynamicImportant "width" (fun value ->
+                                Declaration.create "width" (px (value * 2.))
+                                |> Declaration.important)
+                            Style.whenActive
+                                (fun value -> value > 0.)
+                                [
+                                    Style.dynamic "opacity" (fun value ->
+                                        Declaration.create "opacity" (Value.render (Generated.number (value / 100.) "": Value<unit>)))
+                                ]
+                        ]
+
+                Expect.equal style.Definition.ClassName "r-a8beb49194bc3121" "The class is the hash of the rendered template."
+
+                Expect.equal
+                    (Stylesheet.render style.Definition.Rules)
+                    (".r-a8beb49194bc3121 { position: absolute; }\n"
+                     + ".r-a8beb49194bc3121 { top: var(--r-a8beb49194bc3121-1); }\n"
+                     + ".r-a8beb49194bc3121 { width: var(--r-a8beb49194bc3121-2) !important; }\n"
+                     + ".r-a8beb49194bc3121:where(.r-a8beb49194bc3121-g0) { opacity: var(--r-a8beb49194bc3121-3); }\n")
+                    "Each slot is a variable reference, with importance fixed in the rule."
+
+                Expect.equal
+                    (Style.variableDeclarations 12.5 style
+                     |> List.map (fun declaration -> Declaration.name declaration, Declaration.value declaration, Declaration.isImportant declaration))
+                    [
+                        "--r-a8beb49194bc3121-1", "12.5px", false
+                        "--r-a8beb49194bc3121-2", "25px", false
+                        "--r-a8beb49194bc3121-3", "0.125", false
+                    ]
+                    "A lowered declaration carries the slot's variable, the reader's value text and no importance."
+
+                Expect.equal
+                    (Style.renderVariables 12.5 style)
+                    "--r-a8beb49194bc3121-1: 12.5px; --r-a8beb49194bc3121-2: 25px; --r-a8beb49194bc3121-3: 0.125;"
+                    "Active slots render in declaration order."
+
+                Expect.equal
+                    (Style.renderVariables -1. style)
+                    "--r-a8beb49194bc3121-1: -1px; --r-a8beb49194bc3121-2: -2px;"
+                    "A slot under an inactive condition is omitted."
+            testCase "dynamic slots reject importance the stylesheet did not declare and keep ordinary text verbatim"
+            <| fun _ ->
+                let important: Styled<unit> =
+                    Style.create
+                        [
+                            Style.dynamic "width" (fun () ->
+                                Declaration.create "width" "1px"
+                                |> Declaration.important)
+                        ]
+
+                Expect.throwsT<System.ArgumentException>
+                    (fun () -> Style.renderVariables () important |> ignore)
+                    "Importance belongs to the static rule."
+
+                let color: Styled<string> =
+                    Style.create [ Style.dynamic "color" (fun text -> Declaration.create "color" text) ]
+
+                for text in [ "red /* inherit */"; "" ] do
+                    Expect.equal
+                        (Style.renderVariables text color)
+                        ("--r-65aabb2614649ebe-1: " + text + ";")
+                        "Ordinary value text is lowered unchanged."
         ]
