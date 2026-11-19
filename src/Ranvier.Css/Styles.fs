@@ -137,6 +137,7 @@ module Style =
                     | Dynamic (name, important, keywords, read) ->
                         slot <- slot + 1
                         let variable = variableName slot
+                        let assign = Declaration.assignTo variable
 
                         readers.Add (
                             parent,
@@ -157,7 +158,7 @@ module Style =
                                 then
                                     invalidArg "read" "Use dynamicImportant to fix importance in the static stylesheet."
 
-                                Declaration.create variable (Declaration.value declaration)
+                                assign declaration
                         )
 
                         let declaration = Declaration.create name ("var(" + variable + ")")
