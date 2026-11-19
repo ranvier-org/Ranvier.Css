@@ -355,53 +355,56 @@ module Generated =
 
         value input
 
+    /// <summary>Rejects a magnitude outside inclusive bounds; supported absolute units convert to each bound's unit.</summary>
+    let internal checkRange minimum maximum (number: float) (unitName: string) =
+        let factor (unit: string) =
+            match unit.ToLowerInvariant () with
+            | "deg" -> Some (1.0, "angle")
+            | "rad" -> Some (180.0 / Math.PI, "angle")
+            | "turn" -> Some (360.0, "angle")
+            | "grad" -> Some (0.9, "angle")
+            | "s" -> Some (1.0, "time")
+            | "ms" -> Some (0.001, "time")
+            | "px" -> Some (1.0, "length")
+            | "in" -> Some (96.0, "length")
+            | "cm" -> Some (96.0 / 2.54, "length")
+            | "mm" -> Some (96.0 / 25.4, "length")
+            | "q" -> Some (96.0 / 101.6, "length")
+            | "pt" -> Some (96.0 / 72.0, "length")
+            | "pc" -> Some (16.0, "length")
+            | "hz" -> Some (1.0, "frequency")
+            | "khz" -> Some (1000.0, "frequency")
+            | "dppx"
+            | "x" -> Some (1.0, "resolution")
+            | "dpi" -> Some (1.0 / 96.0, "resolution")
+            | "dpcm" -> Some (2.54 / 96.0, "resolution")
+            | _ -> None
+
+        let convert unit =
+            if
+                unit = ""
+                || String.Equals (unit, unitName, StringComparison.OrdinalIgnoreCase)
+            then
+                number
+            else
+                match factor unitName, factor unit with
+                | Some (a, k), Some (b, j) when k = j -> number * a / b
+                | _ when number = 0.0 -> 0.0
+                | _ -> invalidArg "input" "Cannot compare CSS units before computed-value resolution."
+
+        let outside lower =
+            function
+            | None -> false
+            | Some (bound, unit) -> if lower then convert unit < bound else convert unit > bound
+
+        if outside true minimum || outside false maximum then
+            invalidArg "input" "CSS numeric range exceeded."
+
     /// <summary>Checks numeric bounds, converting supported absolute units; computed values retain their text.</summary>
     let range minimum maximum (input: Value<'item>) : Value<'tag> =
         match input.Numeric with
-        | Some (number, unitName) ->
-            let factor (unit: string) =
-                match unit.ToLowerInvariant () with
-                | "deg" -> Some (1.0, "angle")
-                | "rad" -> Some (180.0 / Math.PI, "angle")
-                | "turn" -> Some (360.0, "angle")
-                | "grad" -> Some (0.9, "angle")
-                | "s" -> Some (1.0, "time")
-                | "ms" -> Some (0.001, "time")
-                | "px" -> Some (1.0, "length")
-                | "in" -> Some (96.0, "length")
-                | "cm" -> Some (96.0 / 2.54, "length")
-                | "mm" -> Some (96.0 / 25.4, "length")
-                | "q" -> Some (96.0 / 101.6, "length")
-                | "pt" -> Some (96.0 / 72.0, "length")
-                | "pc" -> Some (16.0, "length")
-                | "hz" -> Some (1.0, "frequency")
-                | "khz" -> Some (1000.0, "frequency")
-                | "dppx"
-                | "x" -> Some (1.0, "resolution")
-                | "dpi" -> Some (1.0 / 96.0, "resolution")
-                | "dpcm" -> Some (2.54 / 96.0, "resolution")
-                | _ -> None
-
-            let convert unit =
-                if
-                    unit = ""
-                    || String.Equals (unit, unitName, StringComparison.OrdinalIgnoreCase)
-                then
-                    number
-                else
-                    match factor unitName, factor unit with
-                    | Some (a, k), Some (b, j) when k = j -> number * a / b
-                    | _ when number = 0.0 -> 0.0
-                    | _ -> invalidArg "input" "Cannot compare CSS units before computed-value resolution."
-
-            let outside lower =
-                function
-                | None -> false
-                | Some (bound, unit) -> if lower then convert unit < bound else convert unit > bound
-
-            if outside true minimum || outside false maximum then
-                invalidArg "input" "CSS numeric range exceeded."
-        | _ -> ()
+        | Some (number, unitName) -> checkRange minimum maximum number unitName
+        | None -> ()
 
         copy input
 
@@ -417,11 +420,43 @@ module Value =
 
 /// <summary>Ordered CSS declaration construction and rendering.</summary>
 module Declaration =
+    let private nameCharacter (c: char) =
+        (c >= 'a' && c <= 'z')
+        || (c >= 'A' && c <= 'Z')
+        || (c >= '0' && c <= '9')
+        || c = '_'
+        || c = '-'
+
+    /// <summary>Recognizes ASCII identifiers and custom properties; the property-name pattern decides every other name.</summary>
+    let private plainName (name: string) =
+        let start =
+            if name.Length > 2 && name[0] = '-' && name[1] = '-' then 2
+            elif name.Length > 0 && name[0] = '-' then 1
+            else 0
+
+        let mutable valid =
+            start < name.Length
+            && (start = 2
+                || nameCharacter name[start]
+                   && name[start] <> '-'
+                   && (name[start] < '0' || name[start] > '9'))
+
+        let mutable index = start
+
+        while valid && index < name.Length do
+            valid <- nameCharacter name[index]
+            index <- index + 1
+
+        valid
+
     /// <summary>Creates a declaration from serialized tokens; value grammar validation belongs to generated factories.</summary>
     let create name text =
         if
             String.IsNullOrWhiteSpace name
-            || not (Regex.IsMatch (name, @"^--[A-Za-z0-9_-]+$|^-?[A-Za-z_][A-Za-z0-9_-]*$"))
+            || not (
+                plainName name
+                || Regex.IsMatch (name, @"^--[A-Za-z0-9_-]+$|^-?[A-Za-z_][A-Za-z0-9_-]*$")
+            )
         then
             invalidArg "name" "Expected a CSS property name."
 
@@ -439,19 +474,22 @@ module Declaration =
 
     /// <summary>Recognizes a keyword from a supplied specification registry, including comments and identifier escapes.</summary>
     let isCssWideWith keywords (Declaration (_, text, _)) =
-        let tokens = Regex.Replace (text, @"/\*[\s\S]*?\*/", " ")
-
         let decoded =
-            Regex.Replace (
-                tokens,
-                @"\\([0-9a-fA-F]{1,6})(?:\r\n|[ \t\r\n\f])?|\\([^\r\n\f0-9a-fA-F])",
-                MatchEvaluator (fun matched ->
-                    if matched.Groups[1].Success then
-                        let code = Convert.ToInt32 (matched.Groups[1].Value, 16)
-                        if code > 0 && code < 128 then string (char code) else "?"
-                    else
-                        matched.Groups[2].Value)
-            )
+            if text.IndexOf '\\' < 0 && not (text.Contains "/*") then
+                text
+            else
+                let tokens = Regex.Replace (text, @"/\*[\s\S]*?\*/", " ")
+
+                Regex.Replace (
+                    tokens,
+                    @"\\([0-9a-fA-F]{1,6})(?:\r\n|[ \t\r\n\f])?|\\([^\r\n\f0-9a-fA-F])",
+                    MatchEvaluator (fun matched ->
+                        if matched.Groups[1].Success then
+                            let code = Convert.ToInt32 (matched.Groups[1].Value, 16)
+                            if code > 0 && code < 128 then string (char code) else "?"
+                        else
+                            matched.Groups[2].Value)
+                )
 
         List.contains (decoded.Trim().ToLowerInvariant()) keywords
 
@@ -462,6 +500,11 @@ module Declaration =
     /// <summary>Marks a declaration important while preserving its position.</summary>
     let important (Declaration (name, text, _)) =
         Declaration (name, text, true)
+
+    /// <summary>Validates a property name once and returns a function assigning a declaration's value text to it without importance.</summary>
+    let internal assignTo name =
+        create name "" |> ignore
+        fun (Declaration (_, text, _)) -> Declaration (name, text, false)
 
     /// <summary>Serializes a declaration with its semicolon and importance.</summary>
     let render (Declaration (name, text, important)) =

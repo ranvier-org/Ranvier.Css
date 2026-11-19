@@ -70,17 +70,23 @@ module GrammarRuntime =
                 NativeDisplay.format (fun context depth precedence -> this.NativeDisplay (context, depth, precedence))
 #endif
 
+    /// <summary>The printed form of a grammar table: its nodes by identity.</summary>
+    type private TablePrinted = Table of Map<int, Node>
+
     /// <summary>Immutable resolved grammar lookup. Creation copies caller-owned node arrays.</summary>
 #if !FABLE_COMPILER
     [<System.Diagnostics.DebuggerDisplay("{ToString(),nq}")>]
+    [<StructuredFormatDisplay("{Printed}")>]
 #endif
     type Table =
         private
-        | Table of Map<int, Node>
+        | Table of nodes: Map<int, Node> * byId: Node array
 
 #if !FABLE_COMPILER
+        member private this.Printed = let (Table (nodes, _)) = this in TablePrinted.Table nodes
+
         member internal this.NativeDisplay(context: NativeDisplay.Context, depth: int, precedence: int) =
-            let (Table nodes) = this
+            let (Table (nodes, _)) = this
 
             NativeDisplay.union context depth precedence (box this) (fun n ->
                 "Table",
@@ -144,18 +150,24 @@ module GrammarRuntime =
         /// <summary>Contains a literal magnitude and unit; computed expressions carry <c>None</c>.</summary>
         member this.Numeric = let (ValueData (_, _, numeric)) = this in numeric
 
-    let private lookup (Table nodes) id =
-        match Map.tryFind id nodes with
-        | Some node -> node
-        | None -> invalidArg "nodeId" ("Unknown CSS grammar node: " + string id)
+    let private lookup (Table (nodes, byId)) id =
+        let indexed =
+            if id >= 0 && id < byId.Length then
+                byId[id]
+            else
+                Unchecked.defaultof<Node>
+
+        if isNull (box indexed) then
+            match Map.tryFind id nodes with
+            | Some node -> node
+            | None -> invalidArg "nodeId" ("Unknown CSS grammar node: " + string id)
+        else
+            indexed
 
     let private ranged node (value: ValueData) =
         match value.Numeric with
-        | Some (magnitude, unitName) ->
-            let numeric: Value<unit> = Generated.number magnitude unitName
-            let checkedValue: Value<unit> = Generated.range node.Lower node.Upper numeric
-            checkedValue |> ignore
-        | None -> ()
+        | Some (magnitude, unitName) when node.Lower.IsSome || node.Upper.IsSome -> Generated.checkRange node.Lower node.Upper magnitude unitName
+        | _ -> ()
 
         value
 
@@ -223,7 +235,23 @@ module GrammarRuntime =
                 then
                     invalidArg "nodes" "CSS grammar wrapper has invalid arity."
 
-            Table indexed
+            let highest =
+                copied
+                |> Array.fold (fun highest node -> max highest node.Id) -1
+
+            // A table whose highest identity is below twice its node count is indexed by position; a wider table resolves through the map.
+            let byId =
+                if highest < 2 * copied.Length then
+                    let byId = Array.zeroCreate<Node>(highest + 1)
+
+                    for node in copied do
+                        byId[node.Id] <- node
+
+                    byId
+                else
+                    [||]
+
+            Table (indexed, byId)
 
         /// <summary>Decodes a node count followed by fourteen length-prefixed fields per node; malformed input raises an argument error.</summary>
         let decode (encoded: string) =

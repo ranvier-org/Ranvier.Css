@@ -185,8 +185,70 @@ let private colorFixture () =
         }
     |]
 
+/// <summary>Bounds on a terminal, on an alias two references above it, on one side of a number and on a boolean template.</summary>
+let private boundedFixture () =
+    [|
+        { node 0 0 [||] with
+            Text = "length"
+            Lower = Some (0., "px")
+            Upper = Some (10., "px")
+        }
+        { node 1 2 [||] with Target = 0 }
+        { node 2 2 [||] with
+            Target = 1
+            Lower = Some (2., "px")
+            Upper = Some (8., "px")
+        }
+        { node 3 0 [||] with Text = "number" }
+        { node 4 2 [||] with
+            Target = 3
+            Lower = Some (1., "")
+        }
+        { node 5 2 [||] with
+            Target = 3
+            Upper = Some (1., "")
+        }
+        { node 6 11 [| 0 |] with
+            Lower = Some (3., "px")
+        }
+    |]
+
+/// <summary>Identities far apart and listed out of order.</summary>
+let private sparseFixture () =
+    [|
+        { node 7 0 [||] with Text = "length" }
+        { node 123456 2 [||] with
+            Target = 7
+            Lower = Some (0., "px")
+        }
+        node 1000 3 [| 123456; 40 |]
+        { node 40 1 [||] with Text = "auto" }
+    |]
+
 let private rejects action =
     Expect.throwsT<ArgumentException> action "Invalid construction must retain its runtime guard."
+
+/// <summary>Returns the parameter name and message of the argument error raised by an action.</summary>
+let private failure (action: unit -> ValueData) =
+    let raised =
+        try
+            action () |> ignore
+            None
+        with :? ArgumentException as error ->
+            Some (error.ParamName, error.Message)
+
+    match raised with
+    | Some found -> found
+    | None -> failtest "Expected an argument error."
+
+let private rangeExceeded =
+    "input", "CSS numeric range exceeded. (Parameter 'input')"
+
+let private unknownNode (id: int) =
+    "nodeId",
+    "Unknown CSS grammar node: "
+    + string id
+    + " (Parameter 'nodeId')"
 
 let private field (text: string) =
     string text.Length + ":" + text
@@ -550,4 +612,156 @@ let tests =
                 let value = token "none"
                 Expect.equal (optional (Some value)) (Supplied value) "A present value is supplied."
                 Expect.equal (optional None) Omitted "An absent value is omitted."
+
+            testCase "a terminal's own bounds are inclusive"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                for magnitude, text in [ 0., "0px"; 10., "10px" ] do
+                    let value = number table 0 magnitude "px"
+
+                    Expect.equal
+                        (value.NodeId, value.Text, value.Numeric)
+                        (0, text, Some (magnitude, "px"))
+                        "A magnitude equal to a bound is inside it."
+
+                for magnitude in [ -1.; 11. ] do
+                    Expect.equal
+                        (failure (fun () -> number table 0 magnitude "px"))
+                        rangeExceeded
+                        "A magnitude outside the terminal's bounds is rejected."
+
+            testCase "an alias applies its bounds to a value admitted through an unbounded reference"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                let px magnitude =
+                    number table 0 magnitude "px"
+
+                for value in [ px 2.; px 5.; px 8.; number table 0 0.05 "in" ] do
+                    Expect.equal (admit table 2 value) value "A value inside the alias's bounds is admitted unchanged."
+
+                for value in [ px 1.; px 9.; number table 0 0.01 "in" ] do
+                    Expect.equal (failure (fun () -> admit table 2 value)) rangeExceeded "The alias rejects a value its terminal accepts."
+
+                Expect.equal (admit table 1 (px 1.)) (px 1.) "An unbounded alias adds no check."
+                Expect.equal (number table 2 5. "px") (px 5.) "A number created at the alias keeps the terminal's identity."
+
+                Expect.equal (failure (fun () -> number table 2 1. "px")) rangeExceeded "A number created at the alias meets the alias's bounds."
+
+                Expect.equal (construct table 2 [| Some (px 5.) |]) (px 5.) "Construction through the alias admits a value inside its bounds."
+
+                Expect.equal
+                    (failure (fun () -> construct table 2 [| Some (px 1.) |]))
+                    rangeExceeded
+                    "Construction through the alias checks its bounds."
+
+            testCase "a bound in an unrelated unit rejects every magnitude except zero"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                Expect.equal
+                    (failure (fun () -> number table 0 1. "em"))
+                    ("input", "Cannot compare CSS units before computed-value resolution. (Parameter 'input')")
+                    "A font-relative length has no conversion to the bound's unit."
+
+                let zero = number table 0 0. "em"
+                Expect.equal (zero.Text, zero.Numeric) ("0em", Some (0., "em")) "Zero compares as zero in every unit."
+                Expect.equal (failure (fun () -> admit table 2 zero)) rangeExceeded "Zero is compared with each bound."
+
+            testCase "a bound on one side leaves the other side open"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                for nodeId, magnitude, text in [ 4, 1., "1"; 4, 1e300, "1e300"; 5, 1., "1"; 5, -1e300, "-1e300" ] do
+                    Expect.equal (number table nodeId magnitude "").Text text "The open side admits any finite magnitude."
+
+                for nodeId, magnitude in [ 4, 0.5; 5, 1.5 ] do
+                    Expect.equal
+                        (failure (fun () -> number table nodeId magnitude ""))
+                        rangeExceeded
+                        "The bounded side rejects a magnitude beyond it."
+
+            testCase "a boolean template applies its bounds to its operand's number"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+                let inside = construct table 6 [| Some (number table 0 5. "px") |]
+                Expect.equal (inside.NodeId, inside.Text, inside.Numeric) (6, "5px", Some (5., "px")) "The template keeps its operand's number."
+
+                Expect.equal
+                    (failure (fun () -> construct table 6 [| Some (number table 0 1. "px") |]))
+                    rangeExceeded
+                    "The template's lower bound applies to the operand."
+
+            testCase "a number that is not finite is rejected at bounded and unbounded nodes"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                for nodeId, unitName in [ 0, "px"; 3, "" ] do
+                    for magnitude in [ nan; infinity; -infinity ] do
+                        Expect.equal
+                            (failure (fun () -> number table nodeId magnitude unitName))
+                            ("number", "CSS numbers must be finite. (Parameter 'number')")
+                            "Only finite numbers become CSS tokens."
+
+            testCase "an identity absent from the table is reported by its number"
+            <| fun _ ->
+                let table = Table.create (boundedFixture ())
+
+                for id in [ 7; 99; -1; Int32.MaxValue; Int32.MinValue ] do
+                    Expect.equal (failure (fun () -> opaque table id "x")) (unknownNode id) "An unknown source identity is rejected."
+
+                Expect.equal (failure (fun () -> number table 7 1. "px")) (unknownNode 7) "An unknown numeric identity is rejected."
+
+                Expect.equal
+                    (failure (fun () -> admit table 1000 (number table 0 1. "px")))
+                    (unknownNode 1000)
+                    "An unknown admission target is rejected."
+
+            testCase "identities far apart resolve, and the gaps between them stay unknown"
+            <| fun _ ->
+                let table = Table.create (sparseFixture ())
+                let length = number table 7 3. "px"
+                Expect.equal (admit table 1000 length) length "A choice reaches its terminal through a distant alias."
+                Expect.equal (number table 1000 3. "px") length "A number created at the choice resolves the same terminal."
+                Expect.equal (admit table 1000 (token "auto")).Text "auto" "A keyword child of the choice is admitted."
+
+                Expect.equal (failure (fun () -> admit table 1000 (number table 7 -3. "px"))) rangeExceeded "The distant alias keeps its lower bound."
+
+                for id in [ 0; 8; 41; 123457 ] do
+                    Expect.equal (failure (fun () -> opaque table id "x")) (unknownNode id) "An identity between or beyond the nodes is unknown."
+
+            testCase "a gap inside consecutive identities stays unknown"
+            <| fun _ ->
+                let table =
+                    Table.create
+                        [|
+                            { node 0 0 [||] with Text = "length" }
+                            { node 1 2 [||] with Target = 0 }
+                            { node 2 2 [||] with Target = 4 }
+                            { node 4 2 [||] with Target = 1 }
+                        |]
+
+                let length = number table 0 3. "px"
+                Expect.equal (admit table 2 length) length "References across the gap resolve."
+
+                for id in [ 3; 5 ] do
+                    Expect.equal
+                        (failure (fun () -> opaque table id "x"))
+                        (unknownNode id)
+                        "The gap and the identity after the last node are unknown."
+
+            testCase "resolution is independent of the order of the input nodes"
+            <| fun _ ->
+                let table = Table.create (Array.rev (fixture ()))
+                let length = number table 0 42. "px"
+                Expect.equal (admit table 19 length).Text "42px" "A bounded choice resolves its branches."
+                Expect.equal (construct table 10 [| Some length |]).Text "fit-content(42px)" "A function resolves its child."
+
+                Expect.equal
+                    (construct table 6 [| Some (token "auto"); Some length |]).Text
+                    "auto 42px"
+                    "A sequence resolves its children in grammar order."
+
+                rejects (fun () -> admit table 3 (number table 0 101. "px") |> ignore)
         ]

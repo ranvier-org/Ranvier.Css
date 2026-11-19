@@ -28,6 +28,9 @@
     <Project Path="tests/Ranvier.Css.Compile.Tests/Ranvier.Css.Compile.Tests.fsproj" />
     <Project Path="tests/Ranvier.Css.Browser.Tests/Ranvier.Css.Browser.Tests.fsproj" />
   </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/Ranvier.Css.Benchmarks/Ranvier.Css.Benchmarks.fsproj" />
+  </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Ranvier.Css.Generate/Ranvier.Css.Generate.fsproj" />
     <Project Path="tools/Ranvier.Css.Compile/Ranvier.Css.Compile.fsproj" />
