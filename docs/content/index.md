@@ -1,10 +1,8 @@
 ---
 title: Ranvier.Css
 description: Typed CSS, generated bindings, static extraction and reactive view integration
-layout: bare
+toc: false
 ---
-
-# Ranvier.Css
 
 Typed CSS values and generated property bindings for F# on .NET and Fable,
 with static asset extraction and reactive Ranvier.View integration.
