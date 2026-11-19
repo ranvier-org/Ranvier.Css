@@ -26,6 +26,7 @@
     <Compile Include="BuildTests.fs" />
     <Compile Include="ViewTests.fs" />
     <Compile Include="UtilityViewTests.fs" />
+    <Compile Include="AppliedStylesTests.fs" />
     <Compile Include="Tests.fs" />
   </ItemGroup>
 </Project>

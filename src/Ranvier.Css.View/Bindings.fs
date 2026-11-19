@@ -3,6 +3,15 @@ namespace Ranvier.Css.View
 open Ranvier.Css
 open Ranvier.View
 
+#if !FABLE_COMPILER
+module AppliedStyles =
+    let internal record (_: StyleDefinition) = ()
+
+    let count () = 0
+
+    let after (_: int) : StyleDefinition list = []
+#endif
+
 /// <summary>Template style parts using Ranvier's tracked readers and component disposal.</summary>
 module CssView =
     /// <summary>Applies a static generated class name.</summary>

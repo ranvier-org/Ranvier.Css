@@ -444,6 +444,7 @@ let tests =
             BuildTests.tests
             ViewTests.tests
             UtilityViewTests.tests
+            AppliedStylesTests.tests
          ]
          @ ((pureTests @ corpusTests root)
             |> List.map (fun (name, run) -> testCase name run)))
