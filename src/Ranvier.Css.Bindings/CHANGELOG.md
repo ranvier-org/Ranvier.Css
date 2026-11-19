@@ -1,5 +1,5 @@
 ---
-last_commit_released: 87c566a11897816672927ca9b4e36e682daf37e3
+last_commit_released: 3efb9ba69dddb6d8451fcf03d395452716f81c38
 updaters:
   - xml:
       file: Ranvier.Css.Bindings.fsproj
@@ -7,6 +7,14 @@ updaters:
 ---
 
 # Changelog
+
+## 1.0.0 - 2026-11-19
+
+### 🏗️ Breaking changes
+
+* *(bindings)* Generate the grammar storage in Ranvier.Css (#35) ([3efb9ba](https://github.com/ranvier-org/Ranvier.Css/commit/3efb9ba69dddb6d8451fcf03d395452716f81c38))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/87c566a11897816672927ca9b4e36e682daf37e3..3efb9ba69dddb6d8451fcf03d395452716f81c38)</small></strong>
 
 ## 0.1.1 - 2026-11-14
 
