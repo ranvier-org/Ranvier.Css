@@ -1,5 +1,6 @@
 ---
 last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
+force_version: 0.3.0
 updaters:
   - xml:
       file: Ranvier.Css.fsproj

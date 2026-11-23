@@ -1,5 +1,8 @@
 ---
 last_commit_released: 87c566a11897816672927ca9b4e36e682daf37e3
+force_version: 0.2.0
+depends_on:
+  - ../Ranvier.Css/
 updaters:
   - xml:
       file: Ranvier.Css.Build.fsproj
