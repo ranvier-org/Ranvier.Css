@@ -5,7 +5,7 @@
     <PackageId>Fable.Ranvier.Css.Dom</PackageId>
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Fable.Ranvier.Css.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Css.Dom</AssemblyName>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Typed Ranvier.Css declarations compiled against the shared Fable DOM contracts.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>

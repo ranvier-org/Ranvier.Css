@@ -1,5 +1,5 @@
 ---
-last_commit_released: b74f6a27f79182593583cdc5ca9dd616dcaa4fbb
+last_commit_released: 67b55b313953755db3c8b27b68515dbf1af009df
 include:
   - ../Fable.Ranvier.Css.Dom/
   - ../../Directory.Build.props
@@ -17,6 +17,14 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.2.1 - 2026-11-23
+
+### 🐞 Bug Fixes
+
+* *(view)* Align Ranvier.View floor to 0.4.0 ([67b55b3](https://github.com/ranvier-org/Ranvier.Css/commit/67b55b313953755db3c8b27b68515dbf1af009df))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/b74f6a27f79182593583cdc5ca9dd616dcaa4fbb..67b55b313953755db3c8b27b68515dbf1af009df)</small></strong>
 
 ## 0.2.0 - 2026-11-23
 
