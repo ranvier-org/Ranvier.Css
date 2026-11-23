@@ -1,6 +1,5 @@
 ---
-last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
-force_version: 0.3.0
+last_commit_released: b74f6a27f79182593583cdc5ca9dd616dcaa4fbb
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -13,6 +12,18 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.3.0 - 2026-11-23
+
+### 🏗️ Breaking changes
+
+* *(bindings)* Generate the grammar storage in Ranvier.Css (#35) ([3efb9ba](https://github.com/ranvier-org/Ranvier.Css/commit/3efb9ba69dddb6d8451fcf03d395452716f81c38))
+
+### 🐞 Bug Fixes
+
+* *(release)* Pin pre-1.0 versions and unify CSS package cohort ([b74f6a2](https://github.com/ranvier-org/Ranvier.Css/commit/b74f6a27f79182593583cdc5ca9dd616dcaa4fbb))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e..b74f6a27f79182593583cdc5ca9dd616dcaa4fbb)</small></strong>
 
 ## 0.2.0 - 2026-11-19
 

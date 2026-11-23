@@ -5,7 +5,7 @@
     <PackageId>Fable.Ranvier.Css.Dom</PackageId>
     <PackageId Condition="'$(RanvierTrace)' == 'true'">Fable.Ranvier.Css.Dom.Traced</PackageId>
     <AssemblyName>Ranvier.Css.Dom</AssemblyName>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>
     <Description>Typed Ranvier.Css declarations compiled against the shared Fable DOM contracts.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -27,7 +27,6 @@
         <PackagePath>fable/%(_PackageFiles.Filename)%(_PackageFiles.Extension)</PackagePath>
       </_PackageFiles>
     </ItemGroup>
-    <WriteLinesToFile File="$(NuspecOutputPath)fable/$(MSBuildProjectFile)" Overwrite="true"
-                      Lines="&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;;  &lt;PropertyGroup&gt;;    &lt;TargetFramework&gt;netstandard2.1&lt;/TargetFramework&gt;;    &lt;AssemblyName&gt;Ranvier.Css.Dom&lt;/AssemblyName&gt;;  &lt;/PropertyGroup&gt;;  &lt;ItemGroup&gt;;    &lt;Compile Include=&quot;StyleDeclaration.fs&quot; /&gt;;  &lt;/ItemGroup&gt;;&lt;/Project&gt;" />
+    <WriteLinesToFile File="$(NuspecOutputPath)fable/$(MSBuildProjectFile)" Overwrite="true" Lines="&lt;Project Sdk=&quot;Microsoft.NET.Sdk&quot;&gt;;  &lt;PropertyGroup&gt;;    &lt;TargetFramework&gt;netstandard2.1&lt;/TargetFramework&gt;;    &lt;AssemblyName&gt;Ranvier.Css.Dom&lt;/AssemblyName&gt;;  &lt;/PropertyGroup&gt;;  &lt;ItemGroup&gt;;    &lt;Compile Include=&quot;StyleDeclaration.fs&quot; /&gt;;  &lt;/ItemGroup&gt;;&lt;/Project&gt;" />
   </Target>
 </Project>
