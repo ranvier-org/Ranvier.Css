@@ -1,6 +1,5 @@
 ---
-last_commit_released: 87c566a11897816672927ca9b4e36e682daf37e3
-force_version: 0.2.0
+last_commit_released: b74f6a27f79182593583cdc5ca9dd616dcaa4fbb
 depends_on:
   - ../Ranvier.Css/
 updaters:
@@ -10,6 +9,18 @@ updaters:
 ---
 
 # Changelog
+
+## 0.2.0 - 2026-11-23
+
+### 🐞 Bug Fixes
+
+* *(release)* Pin pre-1.0 versions and unify CSS package cohort ([b74f6a2](https://github.com/ranvier-org/Ranvier.Css/commit/b74f6a27f79182593583cdc5ca9dd616dcaa4fbb))
+
+### 🔗 Dependencies
+
+* `src/Ranvier.Css` updated to 0.3.0
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/87c566a11897816672927ca9b4e36e682daf37e3..b74f6a27f79182593583cdc5ca9dd616dcaa4fbb)</small></strong>
 
 ## 0.1.1 - 2026-11-14
 

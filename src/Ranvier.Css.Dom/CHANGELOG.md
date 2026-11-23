@@ -1,6 +1,5 @@
 ---
-last_commit_released: 0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e
-force_version: 0.2.0
+last_commit_released: b74f6a27f79182593583cdc5ca9dd616dcaa4fbb
 include:
   - ../Fable.Ranvier.Css.Dom/
   - ../../Directory.Build.props
@@ -18,6 +17,18 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.2.0 - 2026-11-23
+
+### 🐞 Bug Fixes
+
+* *(release)* Pin pre-1.0 versions and unify CSS package cohort ([b74f6a2](https://github.com/ranvier-org/Ranvier.Css/commit/b74f6a27f79182593583cdc5ca9dd616dcaa4fbb))
+
+### 🔗 Dependencies
+
+* `src/Ranvier.Css` updated to 0.3.0
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/0b74916d1f4b8bbe16dd7e79a2d71c15d4b8b10e..b74f6a27f79182593583cdc5ca9dd616dcaa4fbb)</small></strong>
 
 ## 0.1.0 - 2026-11-14
 
