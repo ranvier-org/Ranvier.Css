@@ -1,5 +1,5 @@
 ---
-last_commit_released: b74f6a27f79182593583cdc5ca9dd616dcaa4fbb
+last_commit_released: b2bc272d07bb190e4c69d5670283cbef5afd678d
 updaters:
   - xml:
       file: Ranvier.Css.fsproj
@@ -12,6 +12,14 @@ updaters:
 # Changelog
 
 This changelog is generated from conventional commits by [EasyBuild.ShipIt](https://github.com/easybuild-org/EasyBuild.ShipIt).
+
+## 0.3.1 - 2026-11-25
+
+### 🐞 Bug Fixes
+
+* *(css)* Register reader slots as non-inherited custom properties (#42) ([b2bc272](https://github.com/ranvier-org/Ranvier.Css/commit/b2bc272d07bb190e4c69d5670283cbef5afd678d))
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/b74f6a27f79182593583cdc5ca9dd616dcaa4fbb..b2bc272d07bb190e4c69d5670283cbef5afd678d)</small></strong>
 
 ## 0.3.0 - 2026-11-23
 
