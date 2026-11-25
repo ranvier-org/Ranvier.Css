@@ -396,11 +396,14 @@ let tests =
 
                 Expect.equal
                     (Stylesheet.render style.Definition.Rules)
-                    (".r-a8beb49194bc3121 { position: absolute; }\n"
+                    ("@property --r-a8beb49194bc3121-1 { syntax: \"*\"; inherits: false; }\n"
+                     + "@property --r-a8beb49194bc3121-2 { syntax: \"*\"; inherits: false; }\n"
+                     + "@property --r-a8beb49194bc3121-3 { syntax: \"*\"; inherits: false; }\n"
+                     + ".r-a8beb49194bc3121 { position: absolute; }\n"
                      + ".r-a8beb49194bc3121 { top: var(--r-a8beb49194bc3121-1); }\n"
                      + ".r-a8beb49194bc3121 { width: var(--r-a8beb49194bc3121-2) !important; }\n"
                      + ".r-a8beb49194bc3121:where(.r-a8beb49194bc3121-g0) { opacity: var(--r-a8beb49194bc3121-3); }\n")
-                    "Each slot is a variable reference, with importance fixed in the rule."
+                    "Each slot is a non-inherited variable reference, with importance fixed in the rule."
 
                 Expect.equal
                     (Style.variableDeclarations 12.5 style
@@ -421,6 +424,87 @@ let tests =
                     (Style.renderVariables -1. style)
                     "--r-a8beb49194bc3121-1: -1px; --r-a8beb49194bc3121-2: -2px;"
                     "A slot under an inactive condition is omitted."
+            testCase "a slot read by the element that carries its variable is registered without inheritance"
+            <| fun _ ->
+                let top =
+                    Style.dynamic "top" (fun (value: float) -> Declaration.create "top" (Value.render (Generated.number value "px": Value<unit>)))
+
+                let registrations nodes =
+                    let style: Styled<float> = Style.create nodes
+
+                    style.Definition.Rules
+                    |> List.choose (function
+                        | DescriptorRule ("property", name, declarations) -> Some (name, Declaration.renderMany declarations)
+                        | _ -> None),
+                    style.Definition.ClassName
+
+                let registered nodes =
+                    match registrations nodes with
+                    | [ name, descriptors ], className ->
+                        Expect.equal name ("--" + className + "-1") "The registration names the slot's variable."
+                        Expect.equal descriptors "syntax: \"*\"; inherits: false;" "Universal syntax, no inheritance, no initial value."
+                        true
+                    | [], _ -> false
+                    | other, _ -> failwithf "Expected at most one registration, got %A" other
+
+                for suffix in
+                    [
+                        ":hover"
+                        ":focus-within"
+                        ":is(.dark)"
+                        ":where(.a .b)"
+                        ":nth-child(2n + 1)"
+                        "[data-x=\"a b\"]"
+                        ".active"
+                        ":hover "
+                    ] do
+                    Expect.isTrue (registered [ Style.nest suffix [ top ] ]) $"'{suffix}' keeps the rule on the element"
+
+                Expect.isTrue (registered [ Style.media "(width > 10px)" [ top ] ]) "A condition keeps the rule on the element"
+                Expect.isTrue (registered [ Style.whenActive (fun value -> value > 0.) [ top ] ]) "A gate keeps the rule on the element"
+
+                for suffix in
+                    [
+                        " svg"
+                        "\tsvg"
+                        " > span"
+                        "+ .next"
+                        " ~ .later"
+                        "::before"
+                        ":after"
+                        ":FIRST-LINE"
+                        ", .other"
+                        ":hover .child"
+                        " &"
+                    ] do
+                    Expect.isFalse (registered [ Style.nest suffix [ top ] ]) $"'{suffix}' moves the rule to another box"
+
+                Expect.isFalse (registered [ Style.nest " svg" [ Style.hover [ top ] ] ]) "A pseudo-class under a descendant stays on the descendant"
+                Expect.isFalse (registered [ Style.media "(width > 10px)" [ Style.nest "::marker" [ top ] ] ]) "A pseudo-element under a condition"
+
+                let progress: CustomProperty<obj> = CustomProperty.create "--progress"
+
+                Expect.isEmpty
+                    (fst (registrations [ Style.bind progress (fun (value: float) -> Generated.number value "") ]))
+                    "A variable the author names keeps its own registration."
+
+                let template: Styled<float> = Style.create [ Style.nest " svg" [ top ] ]
+                let registeredStyle: Styled<float> = Style.create [ top ]
+
+                Expect.equal
+                    (Stylesheet.render template.Definition.Rules)
+                    ("."
+                     + template.Definition.ClassName
+                     + " svg { top: var(--"
+                     + template.Definition.ClassName
+                     + "-1); }\n")
+                    "An unregistered slot renders as before."
+
+                Expect.equal
+                    registeredStyle.Definition.ClassName
+                    ("r-"
+                     + Identity.hash ("& { top: var(--r-slot-1); }\n"))
+                    "Registrations stay out of the hashed template, so class names are unchanged."
             testCase "dynamic slots reject importance the stylesheet did not declare and keep ordinary text verbatim"
             <| fun _ ->
                 let important: Styled<unit> =

@@ -40,6 +40,9 @@ let private find (host: HTMLElement) (selector: string) : HTMLElement = jsNative
 [<Emit("$0.style.getPropertyValue($1)")>]
 let private variableValue (element: HTMLElement) (name: string) : string = jsNative
 
+[<Emit("getComputedStyle($0).getPropertyValue($1).trim()")>]
+let private computedVariable (element: HTMLElement) (name: string) : string = jsNative
+
 [<Emit("$0.getAttribute('class')")>]
 let private classes (element: HTMLElement) : string = jsNative
 
@@ -66,6 +69,18 @@ let private gatedApplication onGateRead onValueRead =
         }
     }
 
+/// <summary>A reader on the element carrying its variable and a reader on a <c>.inner</c> descendant.</summary>
+let private scopedStyle () : Styled<Signal<float>> =
+    Style.create
+        [
+            Style.dynamic "width" (fun (current: Signal<float>) -> Css.width (Css.px current.Value))
+            Style.nest
+                " .inner"
+                [
+                    Style.dynamic "width" (fun (current: Signal<float>) -> Css.width (Css.px (current.Value / 2.)))
+                ]
+        ]
+
 /// <summary>Static stylesheet fixture loaded before mounting; dynamic readers are not evaluated.</summary>
 let cssText () =
     let fixture: Styled<unit> =
@@ -76,6 +91,7 @@ let cssText () =
     Stylesheet.render (
         fixture.Definition.Rules
         @ application.Definition.Rules
+        @ (scopedStyle ()).Definition.Rules
     )
 
 /// <summary>Executes a real DOM mount, reactive update, and disposal under both template commit modes.</summary>
@@ -263,6 +279,54 @@ let run () =
             failwith "Disposed CSS binding still reads the signal."
 
         remove host
+        let scopedHost = createHost ()
+        attach scopedHost
+        let mutable scopedWidth: Signal<float> = Unchecked.defaultof<_>
+        let scoped = scopedStyle ()
+
+        let scopedComponent =
+            Component.define
+                (fun _ () ->
+                    scopedWidth <- Api.createSignal 80.0
+                    scopedWidth)
+                (fun t ->
+                    t.element (HtmlTag "div") (CssView.apply t.Attrs scoped) [| t.element (HtmlTag "div") [| t.Attrs.className "inner" |] [||] |])
+
+        let scopedMount =
+            Mounting.mountWith mode graph None (fun errors -> failwithf "%A" errors) scopedHost None (fun context ->
+                Program.run (Component.render scopedComponent ()) context.Backend)
+
+        scopedMount.Flush ()
+        let outer = find scopedHost ("." + scoped.Definition.ClassName)
+        let inner = find scopedHost ".inner"
+        let own = "--" + scoped.Definition.ClassName + "-1"
+        let inherited = "--" + scoped.Definition.ClassName + "-2"
+
+        if browserEngine () then
+            if
+                computedWidth outer <> "80px"
+                || computedWidth inner <> "40px"
+            then
+                failwith "Native CSS did not resolve the element and descendant reader widths."
+
+            if computedVariable inner own <> "" then
+                failwith "A descendant inherited a reader property registered for its own element."
+
+            if computedVariable inner inherited <> "40px" then
+                failwith "A reader property read by a descendant did not reach it."
+
+        graph.Run (fun () -> scopedWidth.Value <- 120.0)
+        scopedMount.Flush ()
+
+        if
+            browserEngine ()
+            && (computedWidth outer <> "120px"
+                || computedWidth inner <> "60px")
+        then
+            failwith "Native CSS did not resolve the updated element and descendant reader widths."
+
+        scopedMount.Dispose ()
+        remove scopedHost
         let inlineHost = createHost ()
         attach inlineHost
         red inlineHost

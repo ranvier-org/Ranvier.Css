@@ -122,13 +122,83 @@ module Style =
             | Condition (name, prelude, children) -> Condition (name, prelude, contramap map children)
             | ReactiveCondition (read, children) -> ReactiveCondition ((fun value -> read (map value)), contramap map children))
 
+    let private legacyPseudoElements =
+        [ "before"; "after"; "first-line"; "first-letter" ]
+
+    let private nameCharacter (character: char) =
+        Char.IsLetterOrDigit character
+        || character = '-'
+        || character = '_'
+        || int character >= 0x80
+
+    /// <summary>Indicates whether a selector suffix matches the same element as the selector it extends.</summary>
+    /// <remarks>Pseudo-classes, attribute selectors and compound classes keep the element. A top-level combinator, selector list, nesting selector or pseudo-element selects another box.</remarks>
+    let private keepsSubject (suffix: string) =
+        let text = suffix.TrimEnd ()
+        let mutable keeps = true
+        let mutable depth = 0
+        let mutable quote = '\000'
+        let mutable escaped = false
+        let mutable comment = false
+        let mutable index = 0
+
+        while keeps && index < text.Length do
+            let character = text[index]
+            let next = if index + 1 < text.Length then text[index + 1] else '\000'
+
+            if comment then
+                if character = '*' && next = '/' then
+                    comment <- false
+                    index <- index + 1
+            elif escaped then
+                escaped <- false
+            elif character = '\\' then
+                escaped <- true
+            elif quote <> '\000' then
+                if character = quote then
+                    quote <- '\000'
+            elif character = '/' && next = '*' then
+                comment <- true
+                index <- index + 1
+            elif character = '\'' || character = '"' then
+                quote <- character
+            elif character = '(' || character = '[' then
+                depth <- depth + 1
+            elif character = ')' || character = ']' then
+                depth <- depth - 1
+            elif depth = 0 then
+                if "&,>+~| \t\n\r\f".IndexOf character >= 0 then
+                    keeps <- false
+                elif character = ':' then
+                    if next = ':' then
+                        keeps <- false
+                    else
+                        let rest = text.Substring (index + 1)
+
+                        keeps <-
+                            legacyPseudoElements
+                            |> List.forall (fun name ->
+                                rest.Length < name.Length
+                                || rest.Substring(0, name.Length).ToLowerInvariant()
+                                   <> name
+                                || (rest.Length > name.Length
+                                    && nameCharacter rest[name.Length]))
+
+            index <- index + 1
+
+        keeps
+
     /// <summary>Lowers ordered static rules, conditional class gates and dynamic slots without evaluating instance readers.</summary>
+    /// <remarks>Each slot whose rule applies to the element carrying its variable is registered ahead of the rules as a non-inherited
+    /// custom property with universal syntax, so a change to its value restyles that element alone. A slot under a descendant, sibling
+    /// or pseudo-element suffix stays inherited. Registrations are excluded from the hashed template, so class names are unchanged.</remarks>
     let create nodes =
         let readers = ResizeArray<int option * ('instance -> Declaration)>()
         let conditions = ResizeArray<int option * ('instance -> bool)>()
+        let registrations = ResizeArray<string>()
         let mutable slot = 0
 
-        let rec lower (root: string) (selector: string) variableName gateName parent nodes =
+        let rec lower (root: string) (selector: string) subject variableName gateName parent nodes =
             [
                 for node in nodes do
                     match node with
@@ -138,6 +208,9 @@ module Style =
                         slot <- slot + 1
                         let variable = variableName slot
                         let assign = Declaration.assignTo variable
+
+                        if subject then
+                            registrations.Add variable
 
                         readers.Add (
                             parent,
@@ -173,31 +246,55 @@ module Style =
                                         declaration
                                 ]
                     | BindVariable (name, read) -> readers.Add (parent, read)
-                    | Nest (suffix, children) -> yield! lower root (selector + suffix) variableName gateName parent children
-                    | Condition (name, prelude, children) -> yield Rule.group name prelude (lower root selector variableName gateName parent children)
+                    | Nest (suffix, children) ->
+                        yield! lower root (selector + suffix) (subject && keepsSubject suffix) variableName gateName parent children
+                    | Condition (name, prelude, children) ->
+                        yield Rule.group name prelude (lower root selector subject variableName gateName parent children)
                     | ReactiveCondition (read, children) ->
                         let index = conditions.Count
                         conditions.Add (parent, read)
                         let gated = selector.Insert (root.Length, ":where(." + gateName index + ")")
-                        yield! lower root gated variableName gateName (Some index) children
+                        yield! lower root gated subject variableName gateName (Some index) children
             ]
 
         let template =
-            lower "&" "&" (fun n -> "--r-slot-" + string n) (fun n -> "r-gate-" + string n) None nodes
+            lower "&" "&" true (fun n -> "--r-slot-" + string n) (fun n -> "r-gate-" + string n) None nodes
 
         let className = "r-" + Identity.hash (Stylesheet.render template)
         readers.Clear ()
         conditions.Clear ()
+        registrations.Clear ()
         slot <- 0
 
         let gateName n =
             className + "-g" + string n
 
         let rules =
-            lower ("." + className) ("." + className) (fun n -> "--" + className + "-" + string n) gateName None nodes
+            lower ("." + className) ("." + className) true (fun n -> "--" + className + "-" + string n) gateName None nodes
+
+        let registered =
+            [
+                for variable in registrations ->
+                    Rule.descriptors
+                        "property"
+                        variable
+                        [
+                            Declaration.create "syntax" (Generated.stringValue "*" |> Value.render)
+                            Declaration.create "inherits" "false"
+                        ]
+            ]
 
         let gateClasses = [ for n in 0 .. conditions.Count - 1 -> gateName n ]
-        Styled ({ ClassName = className; Rules = rules }, List.ofSeq readers, conditions.ToArray (), gateClasses)
+
+        Styled (
+            {
+                ClassName = className
+                Rules = registered @ rules
+            },
+            List.ofSeq readers,
+            conditions.ToArray (),
+            gateClasses
+        )
 
     let private activeConditions instance (style: Styled<'instance>) =
         let active = Array.zeroCreate<bool> style.Conditions.Length

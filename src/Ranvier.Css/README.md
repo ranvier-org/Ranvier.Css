@@ -116,7 +116,7 @@ let width = Css.width spaced
 - `CssView.apply attrs style` applies a generated class and current variables.
 - `CssView.applyMany attrs styles` combines several styles with one writer for each attribute.
 - `CssView.applyWithInline attrs extraClasses styles reader` combines existing class names, styles and additional inline declarations.
-- `CssView.className` and `CssView.variables` expose those parts separately.
+- `CssView.className` and `CssView.variables` expose those parts separately. Put both on the same element: a reader's generated property is registered non-inherited (`@property … { syntax: "*"; inherits: false; }`) unless its rule applies to a descendant, sibling or pseudo-element.
 - `CssView.inlineStyle attrs reader` supports fully dynamic inline declaration lists, including CSS-wide keywords.
 - `CssView.withStylesheets urls shell` appends ordered, deduplicated asset links to an SSR document shell.
 - `AppliedStyles.after count` returns the definitions of the classes applied after the first `count`, for a .NET host that fills its stylesheet at run time; `AppliedStyles.count ()` is the number applied so far.
