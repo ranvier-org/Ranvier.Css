@@ -235,11 +235,18 @@ let meter = utility {
 }
 ```
 
-The emitted rule uses a generated custom property, for example `width:var(--r-…-0)`.
+The emitted rule uses a generated custom property, for example `width:var(--r-…-1)`.
 The view binding writes the current value to the element and tracks the signals read by that
 reader. Updating `Width` updates the variable; it does not create a stylesheet rule. Disposal
 releases the binding. Server rendering writes the current value with the same generated class
 identity used by the browser.
+
+The stylesheet registers that property as non-inherited, with
+`@property --r-…-1 { syntax: "*"; inherits: false; }`, so a new value restyles the element that
+carries it and leaves its descendants alone. A reader under `descendant`, `pseudoElement`, or a
+`selectorScope` suffix with a combinator applies to another box, which reads the value through
+inheritance, so its property stays unregistered. Apply the class and the variables to the same
+element: `CssView.apply`, `CssView.parts` and `styles { }` always do.
 
 Read signals **inside** the reader. Reading a signal while creating a top-level declaration
 captures a snapshot instead of establishing a per-instance binding.
