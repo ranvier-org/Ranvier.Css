@@ -1,5 +1,5 @@
 ---
-last_commit_released: 67b55b313953755db3c8b27b68515dbf1af009df
+last_commit_released: b2bc272d07bb190e4c69d5670283cbef5afd678d
 include:
   - ../../Directory.Build.props
 depends_on:
@@ -11,6 +11,14 @@ updaters:
 ---
 
 # Changelog
+
+## 0.3.2 - 2026-11-25
+
+### 🔗 Dependencies
+
+* `src/Ranvier.Css` updated to 0.3.1
+
+<strong><small>[View changes on Github](https://github.com/ranvier-org/Ranvier.Css/compare/67b55b313953755db3c8b27b68515dbf1af009df..b2bc272d07bb190e4c69d5670283cbef5afd678d)</small></strong>
 
 ## 0.3.1 - 2026-11-23
 
